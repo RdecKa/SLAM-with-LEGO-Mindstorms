@@ -17,8 +17,8 @@ def run():
     try:
         while True:
             if not data_queue.empty():
-                x, y = data_queue.get()
-                map.add_data(x, y)
+                data = data_queue.get()
+                map.add_data(data)
                 map.redraw()
     except KeyboardInterrupt:
         pass

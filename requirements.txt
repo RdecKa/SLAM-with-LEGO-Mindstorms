@@ -1,2 +1,3 @@
 pylama
 matplotlib
+numpy

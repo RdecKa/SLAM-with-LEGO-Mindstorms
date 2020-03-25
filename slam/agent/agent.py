@@ -4,6 +4,8 @@ import random
 import threading
 import time
 
+import slam.datapoint as datapoint
+
 
 class Agent(threading.Thread):
     def __init__(self, data_queue: queue.Queue):
@@ -15,9 +17,12 @@ class Agent(threading.Thread):
         while not self.shutdown_flag.is_set():
             logging.info("Alive")
             time.sleep(1)
-            if random.random() < 0.4:
-                logging.info("Lucky!")
+            if random.random() < 0.9:
                 x = random.randint(0, 10)
                 y = random.randint(0, 10)
-                self.data_queue.put((x, y))
+                if random.random() < 0.5:
+                    data = datapoint.Observation(x, y)
+                else:
+                    data = datapoint.Position(x, y)
+                self.data_queue.put(data)
         logging.info("Dead")
