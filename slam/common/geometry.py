@@ -1,6 +1,6 @@
-import numpy as np
+from __future__ import annotations
 
-from typing import Tuple
+import numpy as np
 
 
 class Point():
@@ -20,9 +20,30 @@ class Point():
             return self.y
         raise IndexError("Only indices 0 and 1 are accepted")
 
+    def __add__(self, other: Point) -> Point:
+        return Point(self.x + other.x, self.y + other.y)
+
     def change(self, x: float, y: float):
         self.x += x
         self.y += y
+
+    def plus_polar(self, polar: Polar) -> Point:
+        cartesian = polar.to_cartesian()
+        return self + cartesian
+
+
+class Polar():
+    def __init__(self, angle: int, radius: float):
+        self.angle = Angle(angle)
+        self.radius = radius
+
+    def __str__(self):
+        return f"<{self.angle}, {self.radius}>"
+
+    def to_cartesian(self) -> Point:
+        x = self.radius * np.cos(self.angle.in_radians())
+        y = self.radius * np.sin(self.angle.in_radians())
+        return Point(x, y)
 
 
 class Angle():
@@ -70,8 +91,5 @@ class Pose():
         y = distance * np.sin(self.orientation.in_radians())
         self.position.change(x, y)
 
-    def get_coordinates(self) -> Tuple[float, float]:
-        return (self.position.x, self.position.y)
-
-    def get_orientation(self) -> int:
-        return self.orientation.angle
+    def get_position(self) -> Point:
+        return self.position

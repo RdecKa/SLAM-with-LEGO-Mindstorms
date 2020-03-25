@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.patches as patches
 import matplotlib.path as mpath
 
+import slam.common.datapoint as datapoint
 
 plt.ion()
 
@@ -10,8 +11,10 @@ plt.ion()
 class Map():
     def __init__(self, draw_path: bool = True):
         self.data = np.empty([0, 2])
-        self.cdata = np.empty([0, 4])
+        self.color_data = np.empty([0, 4])
         self.draw_path = draw_path
+        if draw_path:
+            self.path_data = np.empty([0, 2])
         self.init_graph()
 
     def init_graph(self):
@@ -24,12 +27,12 @@ class Map():
         if self.scat:
             self.scat.remove()
         self.scat = self.ax.scatter(self.data[:, 0], self.data[:, 1],
-                                    c=self.cdata)
+                                    c=self.color_data)
 
         if self.draw_path:
             if self.path:
                 self.path.remove()
-            path = mpath.Path(self.data, self.compute_path_codes())
+            path = mpath.Path(self.path_data, self.compute_path_codes())
             patch = patches.PathPatch(path, fill=False, lw=1)
             self.path = self.ax.add_patch(patch)
 
@@ -39,9 +42,11 @@ class Map():
 
     def add_data(self, data):
         self.data = np.vstack((self.data, (data.x, data.y)))
-        self.cdata = np.vstack((self.cdata, data.color))
+        self.color_data = np.vstack((self.color_data, data.color))
+        if self.draw_path and isinstance(data, datapoint.Position):
+            self.path_data = np.vstack((self.path_data, (data.x, data.y)))
 
     def compute_path_codes(self):
-        if (len(self.data) == 0):
+        if (len(self.path_data) == 0):
             return []
-        return [mpath.Path.MOVETO] + [mpath.Path.LINETO] * (len(self.data) - 1)
+        return [mpath.Path.MOVETO] + [mpath.Path.LINETO] * (len(self.path_data) - 1)
