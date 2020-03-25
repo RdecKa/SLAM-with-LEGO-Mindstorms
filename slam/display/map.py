@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.patches as patches
 import matplotlib.path as mpath
 
+
 plt.ion()
 
 
@@ -15,18 +16,22 @@ class Map():
 
     def init_graph(self):
         self.figure, self.ax = plt.subplots()
-        self.scat = self.ax.scatter([], [])
+        self.scat = None
+        self.path = None
 
     def redraw(self):
         # Update data
-        self.scat.remove()
+        if self.scat:
+            self.scat.remove()
         self.scat = self.ax.scatter(self.data[:, 0], self.data[:, 1],
                                     c=self.cdata)
 
         if self.draw_path:
+            if self.path:
+                self.path.remove()
             path = mpath.Path(self.data, self.compute_path_codes())
             patch = patches.PathPatch(path, fill=False, lw=1)
-            self.ax.add_patch(patch)
+            self.path = self.ax.add_patch(patch)
 
         # Draw and flush
         self.figure.canvas.draw()
