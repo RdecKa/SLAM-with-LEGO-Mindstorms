@@ -8,6 +8,9 @@ class Point():
         self.x = x
         self.y = y
 
+    def __str__(self):
+        return f"({self.x:.2f}, {self.y:.2f})"
+
     def __getitem__(self, key: int):
         if not isinstance(key, int):
             raise TypeError("Wrong key type")
@@ -26,6 +29,9 @@ class Angle():
     def __init__(self, angle: int):
         self.angle = angle
 
+    def __str__(self):
+        return f"{self.angle}°"
+
     def change(self, angle: int):
         self.angle += angle
         self.angle %= 360
@@ -41,6 +47,9 @@ class Pose():
     def __init__(self, x: float, y: float, angle: int):
         self.position = Point(x, y)
         self.orientation = Angle(angle)
+
+    def __str__(self):
+        return f"{self.position}, {self.orientation}"
 
     def __getitem__(self, key: int):
         if not isinstance(key, int):
