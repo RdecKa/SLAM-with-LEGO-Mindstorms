@@ -16,10 +16,13 @@ class Map():
         self.lines, = self.ax.plot([], [], 'o')
 
     def redraw(self):
+        # Update data
         self.lines.set_xdata(self.xdata)
         self.lines.set_ydata(self.ydata)
+        # Rescale
         self.ax.relim()
         self.ax.autoscale_view()
+        # Draw and flush
         self.figure.canvas.draw()
         self.figure.canvas.flush_events()
 
