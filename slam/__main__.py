@@ -1,7 +1,11 @@
-import tkinter as tk
-import slam.gui.window as window
+import random
+import time
 
-if __name__ == '__main__':
-    root = tk.Tk()
-    app = window.Window(master=root)
-    app.mainloop()
+import slam.display.map as smap
+
+if __name__ == "__main__":
+    map = smap.Map(10, 10)
+    for _ in range(10):
+        map.add_data(random.randint(0, 10), random.randint(0, 10))
+        map.redraw()
+        time.sleep(1)
