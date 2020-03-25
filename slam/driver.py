@@ -1,7 +1,7 @@
 import logging
 import queue
 
-import slam.agent.agent as sagent
+import slam.agent.robot as robot
 import slam.display.map as smap
 
 
@@ -9,9 +9,9 @@ def run():
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
-    map = smap.Map(10, 10)
+    map = smap.Map()
     data_queue = queue.Queue()
-    agent = sagent.Agent(data_queue)
+    agent = robot.Robot(data_queue)
     agent.start()
 
     try:

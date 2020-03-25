@@ -4,7 +4,7 @@ import random
 import threading
 import time
 
-import slam.datapoint as datapoint
+import slam.common.datapoint as datapoint
 
 
 class Agent(threading.Thread):
@@ -16,13 +16,19 @@ class Agent(threading.Thread):
     def run(self):
         while not self.shutdown_flag.is_set():
             logging.info("Alive")
-            time.sleep(1)
-            if random.random() < 0.9:
-                x = random.randint(0, 10)
-                y = random.randint(0, 10)
-                if random.random() < 0.5:
-                    data = datapoint.Observation(x, y)
-                else:
-                    data = datapoint.Position(x, y)
-                self.data_queue.put(data)
+            self.perform_action()
         logging.info("Dead")
+
+    def perform_action(self):
+        """
+        Dummy action
+        """
+        time.sleep(1)
+        if random.random() < 0.9:
+            x = random.randint(0, 10)
+            y = random.randint(0, 10)
+            if random.random() < 0.5:
+                data = datapoint.Observation(x, y)
+            else:
+                data = datapoint.Position(x, y)
+            self.data_queue.put(data)
