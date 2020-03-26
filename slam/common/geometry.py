@@ -38,6 +38,8 @@ class Point():
 
 class Polar():
     def __init__(self, angle: int, radius: float):
+        if radius < 0:
+            raise ValueError
         self.angle = Angle(angle)
         self.radius = radius
 
@@ -47,6 +49,8 @@ class Polar():
     def change(self, angle: Angle, radius: int = 0):
         self.angle.change(angle)
         self.radius += radius
+        if self.radius < 0:
+            raise ValueError
 
     def to_cartesian(self) -> Point:
         x = self.radius * np.cos(self.angle.in_radians())

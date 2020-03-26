@@ -12,3 +12,7 @@ init:
 
 run:
 	${PYTHON} -m slam
+
+test:
+	# Run tests in folder ./tests
+	${PYTHON} -m unittest discover -s tests
