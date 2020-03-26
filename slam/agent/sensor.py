@@ -8,9 +8,23 @@ import slam.common.geometry as geometry
 
 
 class Sensor(threading.Thread):
-    def __init__(self, data_queue: queue.Queue):
+    def __init__(self, data_queue: queue.Queue, view_angle: int = 360,
+                 precision: int = 20):
         threading.Thread.__init__(self)
         self.data_queue = data_queue
+        self.shutdown_flag = threading.Event()
+        self.scan_flag = threading.Event()
+        self.view_angle = view_angle
+        self.precision = precision
+
+    def run(self):
+        logging.info("Turned sensor on")
+        while not self.shutdown_flag.is_set():
+            self.scan_flag.wait(3)
+            if self.scan_flag.is_set():
+                self.scan()
+                self.scan_flag.clear()
+        logging.info("Turned sensor off")
 
 
 class DummySensor(Sensor):
@@ -20,20 +34,7 @@ class DummySensor(Sensor):
     """
     def __init__(self, data_queue: queue.Queue, view_angle: int = 360,
                  precision: int = 20):
-        super().__init__(data_queue)
-        self.view_angle = view_angle
-        self.precision = precision
-        self.shutdown_flag = threading.Event()
-        self.scan_flag = threading.Event()
-
-    def run(self):
-        logging.info("Turned sensor on")
-        while not self.shutdown_flag.is_set():
-            self.scan_flag.wait(5)
-            if self.scan_flag.is_set():
-                self.scan()
-                self.scan_flag.clear()
-        logging.info("Turned sensor off")
+        super().__init__(data_queue, view_angle, precision)
 
     def scan(self):
         logging.info("Started scanning")
