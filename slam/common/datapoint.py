@@ -1,8 +1,15 @@
+from __future__ import annotations
+
+import slam.common.geometry as geometry
+
+
 class DataPoint():
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.location = geometry.Point(x, y)
         self.color = (0., 0., 0., 0.3)
+
+    def __eq__(self, other: DataPoint):
+        return self.location == other.location
 
 
 class Observation(DataPoint):

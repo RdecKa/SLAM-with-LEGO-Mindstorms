@@ -23,6 +23,10 @@ class Point():
     def __add__(self, other: Point) -> Point:
         return Point(self.x + other.x, self.y + other.y)
 
+    def __eq__(self, other: Point) -> bool:
+        eps = 1e-6
+        return abs(self.x - other.x) < eps and abs(self.y - other.y) < eps
+
     def change(self, x: float, y: float):
         self.x += x
         self.y += y

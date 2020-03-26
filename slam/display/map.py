@@ -40,11 +40,11 @@ class Map():
         self.figure.canvas.draw()
         self.figure.canvas.flush_events()
 
-    def add_data(self, data):
-        self.data = np.vstack((self.data, (data.x, data.y)))
+    def add_data(self, data: datapoint.DataPoint):
+        self.data = np.vstack((self.data, [*data.location]))
         self.color_data = np.vstack((self.color_data, data.color))
         if self.draw_path and isinstance(data, datapoint.Position):
-            self.path_data = np.vstack((self.path_data, (data.x, data.y)))
+            self.path_data = np.vstack((self.path_data, [*data.location]))
 
     def compute_path_codes(self):
         if (len(self.path_data) == 0):
