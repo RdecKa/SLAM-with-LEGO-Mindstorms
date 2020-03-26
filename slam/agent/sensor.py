@@ -5,6 +5,7 @@ import threading
 import time
 
 import slam.common.geometry as geometry
+import slam.world.artificial as aworld
 
 
 class Sensor(threading.Thread):
@@ -40,7 +41,7 @@ class DummySensor(Sensor):
         logging.info("Started scanning")
         prev_measurement = 10
         start_angle = int(- self.view_angle / 2)
-        for angle in range(start_angle, start_angle + self.view_angle,
+        for angle in range(start_angle, start_angle + self.view_angle + 1,
                            self.precision):
             new_measurement = prev_measurement + random.random() * 2 - 1
             polar = geometry.Polar(angle, new_measurement)
@@ -48,5 +49,28 @@ class DummySensor(Sensor):
             self.data_queue.put(polar)
             prev_measurement = new_measurement
             time.sleep(0.5)
+        self.data_queue.put(None)
+        logging.info("Scanning finished")
+
+
+class FullInformationSensor(Sensor):
+    """
+    Sensor that has full information about the real world.
+    """
+    def __init__(self, artificial_world: aworld.ArtificialWorld,
+                 data_queue: queue.Queue, view_angle: int = 360,
+                 precision: int = 20):
+        super().__init__(data_queue, view_angle, precision)
+        self.world = artificial_world
+
+    def scan(self):
+        logging.info("Started scanning")
+        start_angle = int(- self.view_angle / 2)
+        for angle in range(start_angle, start_angle + self.view_angle + 1,
+                           self.precision):
+            measurement = self.world.get_distance_to_wall(angle)
+            polar = geometry.Polar(angle, measurement)
+            self.data_queue.put(polar)
+            time.sleep(0.3)
         self.data_queue.put(None)
         logging.info("Scanning finished")

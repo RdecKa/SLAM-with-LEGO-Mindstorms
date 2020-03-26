@@ -30,7 +30,7 @@ class Agent(threading.Thread):
             if random.random() < 0.5:
                 data = datapoint.Observation(x, y)
             else:
-                data = datapoint.Position(x, y)
+                data = datapoint.Pose(x, y, 0)
             self.data_queue.put(data)
 
     def die(self):

@@ -27,6 +27,9 @@ class Point():
         eps = 1e-6
         return abs(self.x - other.x) < eps and abs(self.y - other.y) < eps
 
+    def __hash__(self):
+        return hash((self.x, self.y))
+
     def change(self, x: float = 0, y: float = 0):
         self.x += x
         self.y += y

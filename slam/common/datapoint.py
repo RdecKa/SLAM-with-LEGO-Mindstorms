@@ -18,7 +18,8 @@ class Observation(DataPoint):
         self.color = (0.1, 0.2, 0.9, 0.3)
 
 
-class Position(DataPoint):
-    def __init__(self, x, y):
+class Pose(DataPoint):
+    def __init__(self, x, y, angle):
         super().__init__(x, y)
+        self.angle = geometry.Angle(angle)
         self.color = (0.9, 0.2, 0.1, 0.3)

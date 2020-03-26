@@ -2,6 +2,7 @@ import logging
 import queue
 
 import slam.agent.robot as robot
+import slam.common.geometry as geometry
 import slam.display.map as smap
 
 
@@ -10,8 +11,10 @@ def run():
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
     map = smap.Map()
+    origin = geometry.Pose(0, 40, -45)
     data_queue = queue.Queue()
-    agent = robot.Robot(data_queue)
+    agent = robot.Robot(data_queue, origin, scanning_precision=40,
+                        view_angle=360, simulate_world=True)
     agent.start()
 
     try:

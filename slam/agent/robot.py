@@ -7,20 +7,28 @@ import slam.agent.agent as agent
 import slam.agent.sensor as sensor
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
+import slam.world.artificial as aworld
+import slam.world.observed as oworld
 
 
 class Robot(agent.Agent):
     def __init__(self, data_queue: queue.Queue, origin: geometry.Pose = None,
-                 scanning_precision: int = 20):
+                 scanning_precision: int = 20, view_angle: int = 180,
+                 simulate_world: bool = False):
         super().__init__(data_queue)
         self.pose = origin if origin else geometry.Pose(0, 0, 0)
         self.scanning_precision = scanning_precision
+        self.view_angle = view_angle
         self.observation_queue = queue.Queue()
-        self.scanner = sensor.DummySensor(self.observation_queue, 180)
+        self.observed_world = oworld.ObservedWorld()
+        self.artificial_world = aworld.ArtificialWorld(self.pose)
+        self.scanner = sensor.FullInformationSensor(self.artificial_world,
+                                                    self.observation_queue,
+                                                    view_angle)
         self.scanner.start()
 
         # Send initial position to the queue
-        data = datapoint.Position(*self.pose.position)
+        data = datapoint.Pose(*self.pose)
         self.data_queue.put(data)
 
     def move_forward(self, distance: float):
@@ -31,29 +39,32 @@ class Robot(agent.Agent):
         logging.info(f"Rotate for {angle} degrees.")
         self.pose.rotate(angle)
 
-    def scan(self, view_angle: int = 360):
-        logging.info(f"Scan {view_angle/2} in each direction.")
+    def scan(self):
+        logging.info(f"Scan {self.view_angle/2} in each direction.")
         self.scanner.scan_flag.set()
+        self.artificial_world.update_pose(self.pose)
         while (observed := self.observation_queue.get()) is not None:
             observed.change(self.pose.orientation.in_degrees())
             location = self.pose.position.plus_polar(observed)
-            data = datapoint.Observation(*location)
-            self.data_queue.put(data)
+            observed_data = datapoint.Observation(*location)
+            self.data_queue.put(observed_data)
+            pose_data = datapoint.Pose(*self.pose)
+            self.observed_world.add_observation(pose_data, observed_data)
 
     def perform_action(self):
         r = random.random()
         if r < 0.3:
-            self.scan(180)
-        elif r < 0.8:
-            distance = random.randint(1, 5)
+            self.scan()
+        elif r < 1.8:
+            distance = random.randint(1, 3)
             self.move_forward(distance)
         else:
-            angle = random.randint(1, 360)
+            angle = random.randint(1, 30) - 15
             self.rotate(angle)
 
         logging.info(f"\tNew pose: {self.pose}")
 
-        data = datapoint.Position(*self.pose.position)
+        data = datapoint.Pose(*self.pose)
         self.data_queue.put(data)
 
         time.sleep(1)

@@ -43,7 +43,7 @@ class Map():
     def add_data(self, data: datapoint.DataPoint):
         self.data = np.vstack((self.data, [*data.location]))
         self.color_data = np.vstack((self.color_data, data.color))
-        if self.draw_path and isinstance(data, datapoint.Position):
+        if self.draw_path and isinstance(data, datapoint.Pose):
             self.path_data = np.vstack((self.path_data, [*data.location]))
 
     def compute_path_codes(self):
