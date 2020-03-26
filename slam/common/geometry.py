@@ -27,7 +27,7 @@ class Point():
         eps = 1e-6
         return abs(self.x - other.x) < eps and abs(self.y - other.y) < eps
 
-    def change(self, x: float, y: float):
+    def change(self, x: float = 0, y: float = 0):
         self.x += x
         self.y += y
 
@@ -42,7 +42,11 @@ class Polar():
         self.radius = radius
 
     def __str__(self):
-        return f"<{self.angle}, {self.radius}>"
+        return f"<{self.angle}, {self.radius:.2f}>"
+
+    def change(self, angle: Angle, radius: int = 0):
+        self.angle.change(angle)
+        self.radius += radius
 
     def to_cartesian(self) -> Point:
         x = self.radius * np.cos(self.angle.in_radians())
@@ -94,6 +98,3 @@ class Pose():
         x = distance * np.cos(self.orientation.in_radians())
         y = distance * np.sin(self.orientation.in_radians())
         self.position.change(x, y)
-
-    def get_position(self) -> Point:
-        return self.position

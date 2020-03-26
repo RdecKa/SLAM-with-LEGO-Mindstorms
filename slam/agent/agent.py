@@ -15,14 +15,14 @@ class Agent(threading.Thread):
 
     def run(self):
         while not self.shutdown_flag.is_set():
-            logging.info("Alive")
             self.perform_action()
-        logging.info("Dead")
+        self.die()
 
     def perform_action(self):
         """
         Dummy action
         """
+        logging.info("Alive")
         time.sleep(1)
         if random.random() < 0.9:
             x = random.randint(0, 10)
@@ -32,3 +32,6 @@ class Agent(threading.Thread):
             else:
                 data = datapoint.Position(x, y)
             self.data_queue.put(data)
+
+    def die(self):
+        logging.info("Dead")
