@@ -5,7 +5,7 @@ import threading
 import time
 
 import slam.common.geometry as geometry
-import slam.world.artificial as aworld
+import slam.world.simulated as sworld
 
 
 class Sensor(threading.Thread):
@@ -57,11 +57,11 @@ class FullInformationSensor(Sensor):
     """
     Sensor that has full information about the real world.
     """
-    def __init__(self, artificial_world: aworld.ArtificialWorld,
+    def __init__(self, simulated_world: sworld.SimulatedWorld,
                  data_queue: queue.Queue, view_angle: int = 360,
                  precision: int = 20):
         super().__init__(data_queue, view_angle, precision)
-        self.world = artificial_world
+        self.world = simulated_world
 
     def scan(self):
         logging.info("Started scanning")
@@ -71,6 +71,6 @@ class FullInformationSensor(Sensor):
             measurement = self.world.get_distance_to_wall(angle)
             polar = geometry.Polar(angle, measurement)
             self.data_queue.put(polar)
-            time.sleep(0.3)
+            time.sleep(0.2)
         self.data_queue.put(None)
         logging.info("Scanning finished")

@@ -7,29 +7,31 @@ import slam.agent.agent as agent
 import slam.agent.sensor as sensor
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
-import slam.world.artificial as aworld
+import slam.world.simulated as sworld
 import slam.world.observed as oworld
 
 
 class Robot(agent.Agent):
     def __init__(self, data_queue: queue.Queue, origin: geometry.Pose = None,
-                 scanning_precision: int = 20, view_angle: int = 180,
-                 simulate_world: bool = False):
+                 scanning_precision: int = 20, view_angle: int = 180):
         super().__init__(data_queue)
         self.pose = origin if origin else geometry.Pose(0, 0, 0)
         self.scanning_precision = scanning_precision
         self.view_angle = view_angle
         self.observation_queue = queue.Queue()
         self.observed_world = oworld.ObservedWorld()
-        self.artificial_world = aworld.ArtificialWorld(self.pose)
-        self.scanner = sensor.FullInformationSensor(self.artificial_world,
-                                                    self.observation_queue,
-                                                    view_angle)
+
+        self.init_sensor()
         self.scanner.start()
 
         # Send initial position to the queue
         data = datapoint.Pose(*self.pose)
         self.data_queue.put(data)
+
+    def init_sensor(self):
+        self.scanner = sensor.DummySensor(self.observation_queue,
+                                          self.view_angle,
+                                          self.scanning_precision)
 
     def move_forward(self, distance: float):
         logging.info(f"Move forward for {distance}.")
@@ -42,7 +44,6 @@ class Robot(agent.Agent):
     def scan(self):
         logging.info(f"Scan {self.view_angle/2} in each direction.")
         self.scanner.scan_flag.set()
-        self.artificial_world.update_pose(self.pose)
         while (observed := self.observation_queue.get()) is not None:
             observed.change(self.pose.orientation.in_degrees())
             location = self.pose.position.plus_polar(observed)
@@ -55,7 +56,7 @@ class Robot(agent.Agent):
         r = random.random()
         if r < 0.3:
             self.scan()
-        elif r < 1.8:
+        elif r < 0.8:
             distance = random.randint(1, 3)
             self.move_forward(distance)
         else:
@@ -67,9 +68,42 @@ class Robot(agent.Agent):
         data = datapoint.Pose(*self.pose)
         self.data_queue.put(data)
 
-        time.sleep(1)
+        time.sleep(.5)
 
     def die(self):
         self.scanner.shutdown_flag.set()
         self.scanner.join()
         logging.info("Dead")
+
+
+class SimulatedRobot(Robot):
+    def __init__(self, data_queue: queue.Queue, origin: geometry.Pose = None,
+                 scanning_precision: int = 20, view_angle: int = 180):
+        self.simulated_world = sworld.SimulatedWorld()
+        super().__init__(data_queue, origin, scanning_precision, view_angle)
+        self.simulated_world.update_pose(self.pose)
+
+    def init_sensor(self):
+        self.scanner = sensor.FullInformationSensor(self.simulated_world,
+                                                    self.observation_queue,
+                                                    self.view_angle,
+                                                    self.scanning_precision)
+
+    def scan(self):
+        self.simulated_world.update_pose(self.pose)
+        super().scan()
+
+    def perform_action(self):
+        r = random.random()
+        if r < 0.3:
+            self.scan()
+        else:
+            distance = random.randint(1, 3)
+            self.move_forward(distance)
+
+        logging.info(f"\tNew pose: {self.pose}")
+
+        data = datapoint.Pose(*self.pose)
+        self.data_queue.put(data)
+
+        time.sleep(.5)

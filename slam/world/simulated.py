@@ -4,7 +4,7 @@ import slam.common.geometry as geometry
 import slam.world.world as world
 
 
-class ArtificialWorld(world.World):
+class SimulatedWorld(world.World):
     def __init__(self, pose: geometry.Pose = None):
         self.map = np.zeros([50, 50])
         for i in range(20):

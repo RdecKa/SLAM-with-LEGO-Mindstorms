@@ -13,8 +13,8 @@ def run():
     map = smap.Map()
     origin = geometry.Pose(0, 40, -45)
     data_queue = queue.Queue()
-    agent = robot.Robot(data_queue, origin, scanning_precision=40,
-                        view_angle=360, simulate_world=True)
+    agent = robot.SimulatedRobot(data_queue, origin, scanning_precision=30,
+                                 view_angle=360)
     agent.start()
 
     try:
