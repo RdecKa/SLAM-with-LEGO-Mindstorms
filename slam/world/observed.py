@@ -115,11 +115,20 @@ class ObservedWorld(world.World):
             return (None, None)
         width = int(round(max_border.x - min_border.x)) + 1
         height = int(round(max_border.y - min_border.y)) + 1
-        predicted = np.zeros([height, width])
+        if self.last_prediction is not None and \
+                self.last_prediction.shape == (height, width):
+            predicted = self.last_prediction
+            reset_saved_prediction = False
+        else:
+            predicted = np.zeros([height, width])
+            reset_saved_prediction = True
         kernel = get_obstacle_filter()
         for (position, observations) in self.map.items():
+            if not reset_saved_prediction and observations.used_in_prediction:
+                continue
             pos_x = int(round(position.x - min_border.x))
             pos_y = int(round(position.y - min_border.y))
+            observations.used_in_prediction = True
             for obs in observations:
                 x = int(round(obs.location.x - min_border.x))
                 y = int(round(obs.location.y - min_border.y))
