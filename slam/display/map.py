@@ -1,17 +1,19 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import matplotlib.patches as patches
 import matplotlib.path as mpath
+import matplotlib.pyplot as plt
+import numpy as np
 
 import slam.common.datapoint as datapoint
+from slam.common.enums import GraphType
 
 plt.ion()
 
 
 class Map():
     def __init__(self, draw_path: bool = True):
-        self.data = np.empty([0, 2])
-        self.color_data = np.empty([0, 4])
+        self.data = dict()
+        self.init_scatter_data()
+        self.init_heatmap_data()
         self.draw_path = draw_path
         if draw_path:
             self.path_data = np.empty([0, 2])
@@ -21,14 +23,36 @@ class Map():
         self.figure, self.ax = plt.subplots()
         self.scat = None
         self.path = None
+        self.heat = None
+
+    def init_scatter_data(self):
+        self.data[GraphType.SCATTER.name] = [np.empty([0, 2]), np.empty([0, 4])]
+
+    def init_heatmap_data(self):
+        self.data[GraphType.HEATMAP.name] = np.empty([0, 3])
 
     def redraw(self):
-        # Update data
+        # Heatmap
+        if self.data[GraphType.HEATMAP.name].size > 0:
+            if self.heat:
+                self.heat[3].remove()
+                del self.heat
+
+            data = self.data[GraphType.HEATMAP.name]
+            self.heat = self.ax.hist2d(data[:, 0], data[:, 1],
+                                       weights=data[:, 2], bins=30,
+                                       cmap="seismic", alpha=.3)
+
+        # Scatter plot
         if self.scat:
             self.scat.remove()
-        self.scat = self.ax.scatter(self.data[:, 0], self.data[:, 1],
-                                    c=self.color_data)
+            del self.scat
 
+        data = self.data[GraphType.SCATTER.name][0]
+        c = self.data[GraphType.SCATTER.name][1]
+        self.scat = self.ax.scatter(data[:, 0], data[:, 1], c=c)
+
+        # Path
         if self.draw_path:
             if self.path:
                 self.path.remove()
@@ -41,10 +65,29 @@ class Map():
         self.figure.canvas.flush_events()
 
     def add_data(self, data: datapoint.DataPoint):
-        self.data = np.vstack((self.data, [*data.location]))
-        self.color_data = np.vstack((self.color_data, data.color))
-        if self.draw_path and isinstance(data, datapoint.Pose):
-            self.path_data = np.vstack((self.path_data, [*data.location]))
+        if data.graph_type == GraphType.SCATTER:
+            self.data[GraphType.SCATTER.name][0] = np.vstack((
+                self.data[GraphType.SCATTER.name][0],
+                [*data.location]
+            ))
+            self.data[GraphType.SCATTER.name][1] = np.vstack((
+                self.data[GraphType.SCATTER.name][1],
+                data.color
+            ))
+            if self.draw_path and isinstance(data, datapoint.Pose):
+                self.path_data = np.vstack((self.path_data, [*data.location]))
+        elif data.graph_type == GraphType.HEATMAP:
+            heatmap_data = np.empty([0, 3])
+            origin_x, origin_y = *data.location,
+            for iy in range(len(data.predicted_world)):
+                for ix in range(len(data.predicted_world[iy])):
+                    d = data.predicted_world[iy][ix]
+                    x = ix + origin_x
+                    y = iy + origin_y
+                    heatmap_data = np.vstack((heatmap_data, (x, y, d)))
+            self.data[GraphType.HEATMAP.name] = heatmap_data
+        else:
+            raise TypeError(f"Unknown graph type {data.graph_type}")
 
     def compute_path_codes(self):
         if (len(self.path_data) == 0):

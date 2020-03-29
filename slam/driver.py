@@ -11,7 +11,7 @@ def run():
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
     map = smap.Map()
-    origin = geometry.Pose(0, 40, -45)
+    origin = geometry.Pose(5, 40, -45)
     data_queue = queue.Queue()
     agent = robot.SimulatedRobot(data_queue, origin, scanning_precision=30,
                                  view_angle=360)
@@ -19,10 +19,9 @@ def run():
 
     try:
         while True:
-            if not data_queue.empty():
-                data = data_queue.get()
-                map.add_data(data)
-                map.redraw()
+            data = data_queue.get()
+            map.add_data(data)
+            map.redraw()
     except KeyboardInterrupt:
         pass
 

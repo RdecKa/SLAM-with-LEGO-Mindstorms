@@ -7,8 +7,9 @@ import slam.agent.agent as agent
 import slam.agent.sensor as sensor
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
-import slam.world.simulated as sworld
+import slam.planner.planner as planner
 import slam.world.observed as oworld
+import slam.world.simulated as sworld
 
 
 class Robot(agent.Agent):
@@ -20,6 +21,7 @@ class Robot(agent.Agent):
         self.view_angle = view_angle
         self.observation_queue = queue.Queue()
         self.observed_world = oworld.ObservedWorld()
+        self.planner = planner.Planner(self.observed_world, data_queue)
 
         self.init_sensor()
         self.scanner.start()
@@ -94,6 +96,8 @@ class SimulatedRobot(Robot):
         super().scan()
 
     def perform_action(self):
+        self.planner.select_next_position()
+
         r = random.random()
         if r < 0.3:
             self.scan()
@@ -106,4 +110,4 @@ class SimulatedRobot(Robot):
         data = datapoint.Pose(*self.pose)
         self.data_queue.put(data)
 
-        time.sleep(.5)
+        time.sleep(2)
