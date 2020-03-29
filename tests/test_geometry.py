@@ -72,6 +72,19 @@ class TestPoint(unittest.TestCase):
                     5 + 3 * np.sin(np.radians(120)))
         test_helper(-120, 3, 1.5, 5 + 3 * np.sin(np.radians(-120)))
 
+    def test_distance_to(self):
+        def test_helper(x, y, other_x, other_y, expected_distance):
+            p1 = geometry.Point(x, y)
+            p2 = geometry.Point(other_x, other_y)
+            d1 = p1.distance_to(p2)
+            d2 = p2.distance_to(p1)
+            self.assertAlmostEqual(d1, d2)
+            self.assertAlmostEqual(d1, expected_distance)
+
+        test_helper(5, 5, 7, 5, 2)
+        test_helper(-2, 7, 0, 5, np.sqrt(8))
+        test_helper(5, 4, 5, 4, 0)
+
 
 class TestPolar(unittest.TestCase):
     def test_creation(self):

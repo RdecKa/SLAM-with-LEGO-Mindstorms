@@ -38,6 +38,9 @@ class Point():
         cartesian = polar.to_cartesian()
         return self + cartesian
 
+    def distance_to(self, other: Point) -> float:
+        return np.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
+
 
 class Polar():
     def __init__(self, angle: int, radius: float):
@@ -80,7 +83,7 @@ class Angle():
 
 
 class Pose():
-    def __init__(self, x: float, y: float, angle: int):
+    def __init__(self, x: float, y: float, angle: int = 0):
         self.position = Point(x, y)
         self.orientation = Angle(angle)
 
