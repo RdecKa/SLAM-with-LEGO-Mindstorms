@@ -203,3 +203,17 @@ class TestPose(unittest.TestCase):
         p.move_forward(5)
         self.assertAlmostEqual(p.position.x, -4 + 5 * np.cos(np.radians(135)))
         self.assertAlmostEqual(p.position.y, 2 + 5 * np.sin(np.radians(135)))
+
+    def test_turn_towards(self):
+        def test_helper(x, y, angle, remote_x, remote_y, expected_angle):
+            p = geometry.Pose(x, y, angle)
+            point = geometry.Point(remote_x, remote_y)
+            p.turn_towards(point)
+            self.assertAlmostEqual(p.orientation.in_degrees(), expected_angle)
+
+        test_helper(0, 0, 0, 1, 1, 45)
+        test_helper(0, 0, 90, -2, -2, 225)
+        test_helper(0, 0, -180, -3, 3, 135)
+        test_helper(2, 2, 180, -10, 2, 180)
+        test_helper(-10, 1, 90, -10, -2, 270)
+        test_helper(2, -2, 23, 8, 1, np.degrees(np.arctan2(3, 6)))

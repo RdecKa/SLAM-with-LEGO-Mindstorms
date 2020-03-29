@@ -105,3 +105,10 @@ class Pose():
         x = distance * np.cos(self.orientation.in_radians())
         y = distance * np.sin(self.orientation.in_radians())
         self.position.change(x, y)
+
+    def turn_towards(self, point: Point):
+        x = point.x - self.position.x
+        y = point.y - self.position.y
+        angle_of_point = np.degrees(np.arctan2(y, x))
+        change = angle_of_point - self.orientation.in_degrees()
+        self.rotate(change)
