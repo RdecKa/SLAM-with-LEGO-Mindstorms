@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Callable
 
 import numpy as np
 
@@ -7,17 +7,88 @@ import slam.common.geometry as geometry
 import slam.world.world as world
 
 
+def get_obstacle_filter() -> List[List[int]]:
+    return [
+        [0, 1, 2, 1, 0],
+        [1, 2, 4, 2, 1],
+        [2, 4, 6, 4, 2],
+        [1, 2, 4, 2, 1],
+        [0, 1, 2, 1, 0],
+    ]
+
+
+def apply_filter_on_coordinate(grid: List[List[float]], x_center: int,
+                               y_center: int, kernel: List[List[float]],
+                               f: Callable[[float, float], float] = sum) \
+        -> List[List[float]]:
+    """
+    Apply kernel with function f on grid with the center of kernel placed on
+    (x_center, y_center).
+    """
+
+    filter_sizey = len(kernel)
+    for yi in range(filter_sizey):
+        filter_sizex = len(kernel[yi])
+        for xi in range(filter_sizex):
+            x = x_center - int(filter_sizex//2) + xi
+            y = y_center - int(filter_sizey//2) + yi
+            if y >= 0 and y < len(grid) and x >= 0 and x < len(grid[y]):
+                grid[y][x] = f([grid[y][x], kernel[yi][xi]])
+    return grid
+
+
+def apply_function_on_path(grid: List[List[float]], x_start: int, y_start: int,
+                           x_end: int, y_end: int,
+                           f: Callable[[float], float]) -> List[List[float]]:
+    """
+    Apply function f on the path from (x_start, y_start) to (x_end, y_end).
+    """
+    p = geometry.Pose(x_start, y_start)
+    p_end = geometry.Point(x_end, y_end)
+    p.turn_towards(p_end)
+    x_old = x_start
+    y_old = y_start
+
+    while p.position.distance_to(p_end) > 0.5:
+        x = int(round(p.position.x))
+        y = int(round(p.position.y))
+        p.move_forward(1)
+
+        if x == x_old and y == y_old:
+            continue
+
+        grid[y][x] = f(grid[y][x])
+
+        x_old = x
+        y_old = y
+    return grid
+
+
+class DictEntry():
+    def __init__(self, observations: List[datapoint.Observation]):
+        self.observations = observations
+        self.used_in_prediction = False
+
+    def __getitem__(self, key: int):
+        if not isinstance(key, int):
+            raise TypeError("Wrong key type")
+        if key >= 0 and key < len(self.observations):
+            return self.observations[key]
+        raise IndexError(f"Key {key} out of range for array of length "
+                         f"{len(self.observations)}")
+
+
 class ObservedWorld(world.World):
     def __init__(self):
-        self.map: Dict[geometry.Point, List[datapoint.Observation]] = dict()
+        self.map: Dict[geometry.Point, DictEntry] = dict()
         self.last_prediction = None
 
     def add_observation(self, pose: datapoint.Pose,
                         observation: datapoint.Observation):
         if pose.location in self.map:
-            self.map[pose.location].append(observation)
+            self.map[pose.location].observations.append(observation)
         else:
-            self.map[pose.location] = [observation]
+            self.map[pose.location] = DictEntry([observation])
 
     def get_world_borders(self) -> Tuple[geometry.Point, geometry.Point]:
         if len(self.map) == 0:
@@ -25,12 +96,12 @@ class ObservedWorld(world.World):
 
         x_min, y_min = np.Inf, np.Inf
         x_max, y_max = np.NINF, np.NINF
-        for observations in self.map.values():
-            x_coords = [o.location.x for o in observations]
+        for entry in self.map.values():
+            x_coords = [o.location.x for o in entry]
             x_min = min(x_min, min(x_coords))
             x_max = max(x_max, max(x_coords))
 
-            y_coords = [o.location.y for o in observations]
+            y_coords = [o.location.y for o in entry]
             y_min = min(y_min, min(y_coords))
             y_max = max(y_max, max(y_coords))
         return (geometry.Point(x_min, y_min), geometry.Point(x_max, y_max))
@@ -45,11 +116,17 @@ class ObservedWorld(world.World):
         width = int(round(max_border.x - min_border.x)) + 1
         height = int(round(max_border.y - min_border.y)) + 1
         predicted = np.zeros([height, width])
-        for observations in self.map.values():
+        kernel = get_obstacle_filter()
+        for (position, observations) in self.map.items():
+            pos_x = int(round(position.x - min_border.x))
+            pos_y = int(round(position.y - min_border.y))
             for obs in observations:
-                x = obs.location.x - min_border.x
-                y = obs.location.y - min_border.y
-                predicted[int(round(y))][int(round(x))] = 1
+                x = int(round(obs.location.x - min_border.x))
+                y = int(round(obs.location.y - min_border.y))
+                predicted = apply_filter_on_coordinate(predicted, x, y, kernel)
+                predicted = apply_function_on_path(predicted, pos_x, pos_y, x,
+                                                   y, lambda x: x - 6)
+
         self.last_prediction = predicted
         return (predicted, min_border)
 

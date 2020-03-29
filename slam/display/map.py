@@ -40,8 +40,9 @@ class Map():
 
             data = self.data[GraphType.HEATMAP.name]
             self.heat = self.ax.hist2d(data[:, 0], data[:, 1],
-                                       weights=data[:, 2], bins=30,
-                                       cmap="seismic", alpha=.3)
+                                       weights=data[:, 2], bins=50,
+                                       cmap="BrBG", alpha=.3, vmin=-10,
+                                       vmax=10)
 
         # Scatter plot
         if self.scat:
