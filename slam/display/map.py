@@ -41,7 +41,7 @@ class Map():
             data = self.data[GraphType.HEATMAP.name]
             x_diff = max(data[:, 0]) - min(data[:, 0])
             y_diff = max(data[:, 1]) - min(data[:, 1])
-            bins = int(np.min([x_diff, y_diff, 50]))
+            bins = max(1, int(np.min([x_diff, y_diff, 50])))
             self.heat = self.ax.hist2d(data[:, 0], data[:, 1],
                                        weights=data[:, 2], bins=bins,
                                        cmap="BrBG", alpha=.3, vmin=-10,

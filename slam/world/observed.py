@@ -1,6 +1,7 @@
-from typing import Dict, List, Tuple, Callable
+from typing import Callable, Dict, List, Tuple
 
 import numpy as np
+from scipy.ndimage import gaussian_filter
 
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
@@ -135,17 +136,14 @@ class ObservedWorld(world.World):
                 predicted = apply_filter_on_coordinate(predicted, x, y, kernel)
                 predicted = apply_function_on_path(predicted, pos_x, pos_y, x,
                                                    y, lambda x: x - 6)
-
         self.last_prediction = predicted
+        predicted = gaussian_filter(predicted, sigma=1)
         return (predicted, min_border)
 
     def print(self):
         s = []
         for y in range(len(self.last_prediction) - 1, -1, -1):
             for x in range(len(self.last_prediction[y])):
-                if self.last_prediction[y][x] > 0.5:
-                    s.append("*")
-                else:
-                    s.append(".")
+                s.append(f"{self.last_prediction[y][x]:3.0f}")
             s.append("\n")
         print(''.join(s))
