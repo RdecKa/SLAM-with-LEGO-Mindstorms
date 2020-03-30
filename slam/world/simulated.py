@@ -7,12 +7,16 @@ import slam.world.world as world
 class SimulatedWorld(world.World):
     def __init__(self, pose: geometry.Pose = None):
         self.map = np.zeros([50, 50])
-        for i in range(20):
+        for i in range(20, 40):
             for j in range(10):
                 self.map[i][j] = 1
 
+        for i in range(15, 20):
+            for j in range(35, 50):
+                self.map[i][j] = 1
+
         for i in range(30, 50):
-            for j in range(20, 50):
+            for j in range(20, 25):
                 self.map[i][j] = 1
 
         self.pose = pose

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import slam.common.datapoint as datapoint
-from slam.common.enums import GraphType
+from slam.common.enums import Existence, GraphType, Message
 
 plt.ion()
 
@@ -26,7 +26,8 @@ class Map():
         self.heat = None
 
     def init_scatter_data(self):
-        self.data[GraphType.SCATTER.name] = [np.empty([0, 2]), np.empty([0, 4])]
+        self.data[GraphType.SCATTER.name] = {
+            e.name: [np.empty([0, 2]), np.empty([0, 4])] for e in Existence}
 
     def init_heatmap_data(self):
         self.data[GraphType.HEATMAP.name] = np.empty([0, 3])
@@ -52,8 +53,10 @@ class Map():
             self.scat.remove()
             del self.scat
 
-        data = self.data[GraphType.SCATTER.name][0]
-        c = self.data[GraphType.SCATTER.name][1]
+        data = np.vstack(
+            [self.data[GraphType.SCATTER.name][e.name][0] for e in Existence])
+        c = np.vstack(
+            [self.data[GraphType.SCATTER.name][e.name][1] for e in Existence])
         self.scat = self.ax.scatter(data[:, 0], data[:, 1], c=c)
 
         # Path
@@ -70,16 +73,20 @@ class Map():
 
     def add_data(self, data: datapoint.DataPoint):
         if data.graph_type == GraphType.SCATTER:
-            self.data[GraphType.SCATTER.name][0] = np.vstack((
-                self.data[GraphType.SCATTER.name][0],
-                [*data.location]
-            ))
-            self.data[GraphType.SCATTER.name][1] = np.vstack((
-                self.data[GraphType.SCATTER.name][1],
-                data.color
-            ))
-            if self.draw_path and isinstance(data, datapoint.Pose):
-                self.path_data = np.vstack((self.path_data, [*data.location]))
+            for d in data:
+                self.data[GraphType.SCATTER.name][d.existence.name][0] = \
+                    np.vstack((
+                        self.data[GraphType.SCATTER.name][d.existence.name][0],
+                        [*d.location]
+                    ))
+                self.data[GraphType.SCATTER.name][d.existence.name][1] = \
+                    np.vstack((
+                        self.data[GraphType.SCATTER.name][d.existence.name][1],
+                        d.color
+                    ))
+                if self.draw_path and isinstance(data, datapoint.Pose):
+                    self.path_data = np.vstack(
+                        (self.path_data, [*data.location]))
         elif data.graph_type == GraphType.HEATMAP:
             heatmap_data = np.empty([0, 3])
             origin_x, origin_y = *data.location,
@@ -92,6 +99,13 @@ class Map():
             self.data[GraphType.HEATMAP.name] = heatmap_data
         else:
             raise TypeError(f"Unknown graph type {data.graph_type}")
+
+    def handle_message(self, msg: Message):
+        if msg == Message.DELETE_TEMPORARY_DATA:
+            self.data[GraphType.SCATTER.name][Existence.TEMPORARY.name] = \
+                [np.empty([0, 2]), np.empty([0, 4])]
+        else:
+            raise TypeError(f"Unknown Message type {msg}")
 
     def compute_path_codes(self):
         if (len(self.path_data) == 0):

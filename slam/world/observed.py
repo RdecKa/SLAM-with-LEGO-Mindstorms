@@ -2,6 +2,7 @@ from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 from scipy.ndimage import gaussian_filter
+from scipy.signal import convolve2d
 
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
@@ -137,6 +138,25 @@ class ObservedWorld(world.World):
         self.last_prediction = predicted
         predicted = gaussian_filter(predicted, sigma=sigma)
         return (predicted, min_border)
+
+    def get_unknown_locations(self, kernel_size: int = 5, sigma: int = 1):
+        """
+        Finds locations where the search can be continued (locations free of
+        obstacles that are near to locations with unknown occupancy).
+        """
+        kernel = np.ones([kernel_size, kernel_size])
+        blurred = gaussian_filter(self.last_prediction, sigma=sigma)
+        conv = convolve2d(blurred, kernel, mode="same", boundary="symm")
+        y_shape, x_shape = self.last_prediction.shape
+        frontier = []
+        min_border, _ = self.get_world_borders()
+        for yi in range(y_shape):
+            for xi in range(x_shape):
+                if -0.1 < blurred[yi][xi] < 0 and conv[yi][xi] < 0:
+                    x = min_border.x + xi
+                    y = min_border.y + yi
+                    frontier.append(geometry.Point(x, y))
+        return datapoint.Frontier(min_border.x, min_border.y, frontier)
 
     def print(self):
         s = []
