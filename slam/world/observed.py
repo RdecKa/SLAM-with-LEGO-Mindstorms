@@ -8,28 +8,25 @@ import slam.common.geometry as geometry
 import slam.world.world as world
 
 
-def get_obstacle_filter() -> List[List[int]]:
-    return [
-        [0, 1, 2, 1, 0],
-        [1, 2, 4, 2, 1],
-        [2, 4, 6, 4, 2],
-        [1, 2, 4, 2, 1],
-        [0, 1, 2, 1, 0],
-    ]
+def get_obstacle_filter(size: int = 7, sigma: float = 2.) -> np.ndarray:
+
+    kernel = np.zeros([size, size])
+    kernel[size//2][size//2] = 1
+    kernel = 100 * gaussian_filter(kernel, sigma=sigma)
+    return kernel
 
 
-def apply_filter_on_coordinate(grid: List[List[float]], x_center: int,
-                               y_center: int, kernel: List[List[float]],
+def apply_filter_on_coordinate(grid: np.ndarray, x_center: int,
+                               y_center: int, kernel: np.ndarray,
                                f: Callable[[float, float], float] = sum) \
-        -> List[List[float]]:
+        -> np.ndarray:
     """
     Apply kernel with function f on grid with the center of kernel placed on
     (x_center, y_center).
     """
 
-    filter_sizey = len(kernel)
+    filter_sizey, filter_sizex = kernel.shape
     for yi in range(filter_sizey):
-        filter_sizex = len(kernel[yi])
         for xi in range(filter_sizex):
             x = x_center - int(filter_sizex//2) + xi
             y = y_center - int(filter_sizey//2) + yi
@@ -38,9 +35,9 @@ def apply_filter_on_coordinate(grid: List[List[float]], x_center: int,
     return grid
 
 
-def apply_function_on_path(grid: List[List[float]], x_start: int, y_start: int,
+def apply_function_on_path(grid: np.ndarray, x_start: int, y_start: int,
                            x_end: int, y_end: int,
-                           f: Callable[[float], float]) -> List[List[float]]:
+                           f: Callable[[float], float]) -> np.ndarray:
     """
     Apply function f on the path from (x_start, y_start) to (x_end, y_end).
     """
@@ -107,7 +104,8 @@ class ObservedWorld(world.World):
             y_max = max(y_max, max(y_coords))
         return (geometry.Point(x_min, y_min), geometry.Point(x_max, y_max))
 
-    def predict_world(self) -> Tuple[List[List[int]], geometry.Point]:
+    def predict_world(self, sigma: int = 1) \
+            -> Tuple[np.ndarray, geometry.Point]:
         """
         Returns predited world and the origin of the world.
         """
@@ -137,7 +135,7 @@ class ObservedWorld(world.World):
                 predicted = apply_function_on_path(predicted, pos_x, pos_y, x,
                                                    y, lambda x: x - 6)
         self.last_prediction = predicted
-        predicted = gaussian_filter(predicted, sigma=1)
+        predicted = gaussian_filter(predicted, sigma=sigma)
         return (predicted, min_border)
 
     def print(self):
