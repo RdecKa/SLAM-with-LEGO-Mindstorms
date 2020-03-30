@@ -67,19 +67,28 @@ class Polar():
 class Angle():
     def __init__(self, angle: int):
         self.angle = angle
+        self.transform_to_range()
 
     def __str__(self):
         return f"{self.angle}°"
 
     def change(self, angle: int):
         self.angle += angle
-        self.angle %= 360
+        self.transform_to_range()
 
     def in_degrees(self) -> int:
         return self.angle
 
     def in_radians(self) -> float:
         return np.radians(self.angle)
+
+    def transform_to_range(self):
+        """
+        Transform in range (-180°, 180°]
+        """
+        self.angle %= 360
+        if self.angle > 180:
+            self.angle -= 360
 
 
 class Pose():
@@ -110,14 +119,14 @@ class Pose():
         self.position.change(x, y)
 
     def turn_towards(self, point: Point):
-        angle = self.angle_to_point(point)
+        angle = self.angle_to_point(point).in_degrees()
         self.rotate(angle)
 
     def angle_to_point(self, point: Point):
         x = point.x - self.position.x
         y = point.y - self.position.y
         if x == 0 and y == 0:
-            return 0
+            return Angle(0)
         angle_of_point = np.degrees(np.arctan2(y, x))
         diff = angle_of_point - self.orientation.in_degrees()
-        return diff % 360
+        return Angle(diff)

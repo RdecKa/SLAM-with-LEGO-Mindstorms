@@ -109,7 +109,7 @@ class TestPolar(unittest.TestCase):
     def test_change_negative(self):
         p = geometry.Polar(45, 5.)
         p.change(-90, -2.)
-        self.assertAlmostEqual(p.angle.in_degrees(), 315)
+        self.assertAlmostEqual(p.angle.in_degrees(), -45)
         self.assertAlmostEqual(p.radius, 3.)
 
     def test_change_negative_invalid(self):
@@ -148,7 +148,7 @@ class TestAngle(unittest.TestCase):
         a.change(10)
         self.assertAlmostEqual(a.angle, 15)
         a.change(-35)
-        self.assertAlmostEqual(a.angle, 340)
+        self.assertAlmostEqual(a.angle, -20)
         a.change(100)
         self.assertAlmostEqual(a.angle, 80)
 
@@ -197,7 +197,7 @@ class TestPose(unittest.TestCase):
         p.rotate(300)
         self.assertAlmostEqual(p.orientation.in_degrees(), 35)
         p.rotate(-65)
-        self.assertAlmostEqual(p.orientation.in_degrees(), 330)
+        self.assertAlmostEqual(p.orientation.in_degrees(), -30)
 
     def test_move_forward_up(self):
         p = geometry.Pose(-4, 2, 90)
@@ -225,10 +225,10 @@ class TestPose(unittest.TestCase):
             self.assertAlmostEqual(p.orientation.in_degrees(), expected_angle)
 
         test_helper(0, 0, 0, 1, 1, 45)
-        test_helper(0, 0, 90, -2, -2, 225)
+        test_helper(0, 0, 90, -2, -2, -135)
         test_helper(0, 0, -180, -3, 3, 135)
         test_helper(2, 2, 180, -10, 2, 180)
-        test_helper(-10, 1, 90, -10, -2, 270)
+        test_helper(-10, 1, 90, -10, -2, -90)
         test_helper(2, -2, 23, 8, 1, np.degrees(np.arctan2(3, 6)))
 
     def test_angle_to_point(self):
@@ -236,12 +236,12 @@ class TestPose(unittest.TestCase):
             p = geometry.Pose(x, y, angle)
             point = geometry.Point(remote_x, remote_y)
             a = p.angle_to_point(point)
-            self.assertAlmostEqual(a, expected_angle)
+            self.assertAlmostEqual(a.in_degrees(), expected_angle)
 
         test_helper(0, 0, 0, 5, 5, 45)
-        test_helper(-3, 2, 90, -1, 0, 225)
-        test_helper(6, 6, -45, -6, -6, 270)
+        test_helper(-3, 2, 90, -1, 0, -135)
+        test_helper(6, 6, -45, -6, -6, -90)
         test_helper(1, 1, 0, 4, 1 + 6 * np.sqrt(3) / 2, 60)
         test_helper(-5, -5, 180, 0, -5, 180)
         test_helper(-4, -4, 170, -4, -4, 0)
-        test_helper(-4, -4, 170, -4, 0, 280)
+        test_helper(-4, -4, 170, -4, 0, -80)
