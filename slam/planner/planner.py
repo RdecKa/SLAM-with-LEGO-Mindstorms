@@ -1,5 +1,7 @@
 import queue
 
+import numpy as np
+
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
 import slam.planner.action as action
@@ -56,7 +58,23 @@ class Planner():
         if len(frontier) == 0:
             return None
 
-        nearest = min(frontier,
+        num_points = len(frontier)
+        distances = np.zeros([num_points, num_points])
+        for i in range(num_points):
+            for j in range(i+1, num_points):
+                d = frontier[i].location.distance_to(frontier[j].location)
+                distances[i][j] = d
+                distances[j][i] = d
+
+        # Choose between points that have some neighbouring points
+        count = [sum(1 for d in distances[i] if d < self.distance_tollerance)
+                 for i in range(num_points)]
+        candidates = [p for (i, p) in enumerate(frontier) if count[i] >= 3]
+
+        if len(candidates) == 0:
+            return None
+
+        nearest = min(candidates,
                       key=lambda p: geometry.Point(*p.location).distance_to(
                         current_pose.position))
         return geometry.Point(*nearest.location)
