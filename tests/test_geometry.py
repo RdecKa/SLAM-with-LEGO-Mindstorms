@@ -230,3 +230,18 @@ class TestPose(unittest.TestCase):
         test_helper(2, 2, 180, -10, 2, 180)
         test_helper(-10, 1, 90, -10, -2, 270)
         test_helper(2, -2, 23, 8, 1, np.degrees(np.arctan2(3, 6)))
+
+    def test_angle_to_point(self):
+        def test_helper(x, y, angle, remote_x, remote_y, expected_angle):
+            p = geometry.Pose(x, y, angle)
+            point = geometry.Point(remote_x, remote_y)
+            a = p.angle_to_point(point)
+            self.assertAlmostEqual(a, expected_angle)
+
+        test_helper(0, 0, 0, 5, 5, 45)
+        test_helper(-3, 2, 90, -1, 0, 225)
+        test_helper(6, 6, -45, -6, -6, 270)
+        test_helper(1, 1, 0, 4, 1 + 6 * np.sqrt(3) / 2, 60)
+        test_helper(-5, -5, 180, 0, -5, 180)
+        test_helper(-4, -4, 170, -4, -4, 0)
+        test_helper(-4, -4, 170, -4, 0, 280)

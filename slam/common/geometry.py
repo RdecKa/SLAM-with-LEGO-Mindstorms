@@ -110,8 +110,14 @@ class Pose():
         self.position.change(x, y)
 
     def turn_towards(self, point: Point):
+        angle = self.angle_to_point(point)
+        self.rotate(angle)
+
+    def angle_to_point(self, point: Point):
         x = point.x - self.position.x
         y = point.y - self.position.y
+        if x == 0 and y == 0:
+            return 0
         angle_of_point = np.degrees(np.arctan2(y, x))
-        change = angle_of_point - self.orientation.in_degrees()
-        self.rotate(change)
+        diff = angle_of_point - self.orientation.in_degrees()
+        return diff % 360
