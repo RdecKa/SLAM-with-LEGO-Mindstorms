@@ -139,7 +139,8 @@ class ObservedWorld(world.World):
         predicted = gaussian_filter(predicted, sigma=sigma)
         return (predicted, min_border)
 
-    def get_unknown_locations(self, kernel_size: int = 5, sigma: int = 1):
+    def get_unknown_locations(self, kernel_size: int = 5, sigma: int = 1) \
+            -> datapoint.Frontier:
         """
         Finds locations where the search can be continued (locations free of
         obstacles that are near to locations with unknown occupancy).

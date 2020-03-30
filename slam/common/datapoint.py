@@ -70,3 +70,6 @@ class Frontier(DataPoint):
                              existence=self.existence)
         raise IndexError(f"Key {key} out of range for array of length "
                          f"{len(self.frontier)}")
+
+    def __len__(self):
+        return len(self.frontier)

@@ -19,8 +19,12 @@ def run():
     agent.start()
 
     try:
-        while True:
-            data = data_queue.get()
+        while agent.is_alive():
+            try:
+                data = data_queue.get(timeout=3)
+            except queue.Empty:
+                continue
+
             if isinstance(data, Message):
                 map.handle_message(data)
             else:

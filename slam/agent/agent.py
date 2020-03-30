@@ -14,8 +14,9 @@ class Agent(threading.Thread):
         self.shutdown_flag = threading.Event()
 
     def run(self):
-        while not self.shutdown_flag.is_set():
-            self.perform_action()
+        success = True
+        while not self.shutdown_flag.is_set() and success:
+            success = self.perform_action()
         self.die()
 
     def perform_action(self):
@@ -32,6 +33,7 @@ class Agent(threading.Thread):
             else:
                 data = datapoint.Pose(x, y, 0)
             self.data_queue.put(data)
+        return True
 
     def die(self):
         logging.info("Dead")

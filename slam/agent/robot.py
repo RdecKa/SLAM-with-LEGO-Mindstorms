@@ -7,6 +7,7 @@ import slam.agent.agent as agent
 import slam.agent.sensor as sensor
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
+import slam.planner.action as action
 import slam.planner.planner as planner
 import slam.world.observed as oworld
 import slam.world.simulated as sworld
@@ -21,7 +22,11 @@ class Robot(agent.Agent):
         self.view_angle = view_angle
         self.observation_queue = queue.Queue()
         self.observed_world = oworld.ObservedWorld()
-        self.planner = planner.Planner(self.observed_world, data_queue)
+        turn_action = action.Action(self.rotate)
+        move_action = action.Action(self.move_forward)
+        self.planner = planner.Planner(self.observed_world, data_queue,
+                                       turn_action=turn_action,
+                                       move_action=move_action)
 
         self.init_sensor()
         self.scanner.start()
@@ -71,6 +76,7 @@ class Robot(agent.Agent):
         self.data_queue.put(data)
 
         time.sleep(.5)
+        return True
 
     def die(self):
         self.scanner.shutdown_flag.set()
@@ -96,18 +102,18 @@ class SimulatedRobot(Robot):
         super().scan()
 
     def perform_action(self):
-        self.planner.select_next_position()
+        self.scan()
+        action = self.planner.select_next_action(self.pose)
+        if action is None:
+            logging.info("Done")
+            return False
 
-        r = random.random()
-        if r < 0.3:
-            self.scan()
-        else:
-            distance = random.randint(1, 3)
-            self.move_forward(distance)
+        action.execute()
 
         logging.info(f"\tNew pose: {self.pose}")
 
         data = datapoint.Pose(*self.pose)
         self.data_queue.put(data)
 
-        time.sleep(2)
+        time.sleep(.5)
+        return True
