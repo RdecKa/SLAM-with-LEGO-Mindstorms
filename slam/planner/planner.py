@@ -1,6 +1,7 @@
 import queue
 
 import numpy as np
+from scipy.signal import convolve2d
 
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
@@ -44,10 +45,31 @@ class Planner():
             return
         self.data_queue.put(datapoint.Prediction(*origin, predicted_world))
         self.data_queue.put(Message.DELETE_TEMPORARY_DATA)
-        frontier = self.observed_world.get_unknown_locations()
+        frontier = self.get_unknown_locations(self.observed_world)
         self.data_queue.put(frontier)
 
         return self.select_from_frontier(frontier, current_pose)
+
+    def get_unknown_locations(self, observed_world: oworld.ObservedWorld,
+                              kernel_size: int = 5,
+                              sigma: int = 1) -> datapoint.Frontier:
+        """
+        Finds locations where the search can be continued (locations free of
+        obstacles that are near to locations with unknown occupancy).
+        """
+        grid = observed_world.last_prediction_blurred
+        kernel = np.ones([kernel_size, kernel_size])
+        conv = convolve2d(grid, kernel, mode="same", boundary="symm")
+        y_shape, x_shape = grid.shape
+        frontier = []
+        min_border, _ = observed_world.get_world_borders()
+        for yi in range(y_shape):
+            for xi in range(x_shape):
+                if -0.1 < grid[yi][xi] < 0 and conv[yi][xi] < 0:
+                    x = min_border.x + xi
+                    y = min_border.y + yi
+                    frontier.append(geometry.Point(x, y))
+        return datapoint.Frontier(min_border.x, min_border.y, frontier)
 
     def select_from_frontier(self, frontier: datapoint.Frontier,
                              current_pose: geometry.Pose) -> geometry.Point:
