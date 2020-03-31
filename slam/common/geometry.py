@@ -41,6 +41,14 @@ class Point():
     def distance_to(self, other: Point) -> float:
         return np.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
 
+    def angle_to(self, point: Point):
+        x = point.x - self.x
+        y = point.y - self.y
+        if abs(x) < 1e-6 and abs(y) < 1e-6:
+            return Angle(0)
+        angle = np.degrees(np.arctan2(y, x))
+        return Angle(angle)
+
 
 class Polar():
     def __init__(self, angle: int, radius: float):
@@ -71,6 +79,12 @@ class Angle():
 
     def __str__(self):
         return f"{self.angle}°"
+
+    def __add__(self, other: Angle):
+        return Angle(self.angle + other.angle)
+
+    def __sub__(self, other: Angle):
+        return Angle(self.angle - other.angle)
 
     def change(self, angle: int):
         self.angle += angle
@@ -127,6 +141,6 @@ class Pose():
         y = point.y - self.position.y
         if x == 0 and y == 0:
             return Angle(0)
-        angle_of_point = np.degrees(np.arctan2(y, x))
-        diff = angle_of_point - self.orientation.in_degrees()
-        return Angle(diff)
+        angle_of_point = self.position.angle_to(point)
+
+        return angle_of_point - self.orientation

@@ -85,6 +85,22 @@ class TestPoint(unittest.TestCase):
         test_helper(-2, 7, 0, 5, np.sqrt(8))
         test_helper(5, 4, 5, 4, 0)
 
+    def test_angle_to(self):
+        def test_helper(x, y, other_x, other_y, expected_angle):
+            p1 = geometry.Point(x, y)
+            p2 = geometry.Point(other_x, other_y)
+            a = p1.angle_to(p2).in_degrees()
+            self.assertAlmostEqual(a, expected_angle)
+
+        test_helper(1, 1, 5, 5, 45)
+        test_helper(1, 1, 0, 2, 135)
+        test_helper(1, 1, -1, -1, -135)
+        test_helper(1, 1, 3, -1, -45)
+        test_helper(5, 5, 6, 5, 0)
+        test_helper(5, 5, -6, 5, 180)
+        test_helper(-2, -2, -2, 1, 90)
+        test_helper(-2, -2, -2, -5, -90)
+
 
 class TestPolar(unittest.TestCase):
     def test_creation(self):
@@ -142,6 +158,35 @@ class TestAngle(unittest.TestCase):
     def test_str(self):
         a = geometry.Angle(5)
         self.assertEqual(str(a), "5°")
+
+    def test_add(self):
+        def test_helper(angle_1, angle_2, expected_angle):
+            a1 = geometry.Angle(angle_1)
+            a2 = geometry.Angle(angle_2)
+            s1 = a1 + a2
+            s2 = a2 + a1
+            self.assertAlmostEqual(s1.in_degrees(), s2.in_degrees())
+            self.assertAlmostEqual(s1.in_degrees(), expected_angle)
+
+        test_helper(20, 20, 40)
+        test_helper(20, -20, 0)
+        test_helper(-15, 55, 40)
+        test_helper(170, 20, -170)
+        test_helper(-160, -30, 170)
+
+    def test_sub(self):
+        def test_helper(angle_1, angle_2, expected_angle):
+            a1 = geometry.Angle(angle_1)
+            a2 = geometry.Angle(angle_2)
+            s = a1 - a2
+            self.assertAlmostEqual(s.in_degrees(), expected_angle)
+
+        test_helper(50, 20, 30)
+        test_helper(0, 20, -20)
+        test_helper(13, -15, 28)
+        test_helper(-20, 40, -60)
+        test_helper(-175, 5, 180)
+        test_helper(-175, 180, 5)
 
     def test_change(self):
         a = geometry.Angle(5)
