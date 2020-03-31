@@ -6,6 +6,7 @@ from scipy.signal import convolve2d
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
 import slam.planner.action as action
+import slam.planner.path as spath
 import slam.world.observed as oworld
 from slam.common.enums import Message
 
@@ -13,7 +14,8 @@ from slam.common.enums import Message
 class Planner():
     def __init__(self, observed_world: oworld.ObservedWorld,
                  data_queue: queue.Queue, turn_action: action.Action,
-                 move_action: action.Action, distance_tollerance: float = 5.0,
+                 move_action: action.Action, turn_move_action: action.Action,
+                 distance_tollerance: float = 5.0,
                  angle_tollerance: float = 5.0):
         self.observed_world = observed_world
         self.data_queue = data_queue
@@ -21,7 +23,9 @@ class Planner():
         self.angle_tollerance = angle_tollerance
         self.turn_action = turn_action
         self.move_action = move_action
-        self.max_movement_forward = 10
+        self.turn_move_action = turn_move_action
+        self.path_planner = spath.PathPlanner(observed_world,
+                                              data_queue=data_queue)
 
     def select_next_action(self, current_pose: geometry.Pose) -> \
             action.ActionWithParams:
@@ -31,13 +35,17 @@ class Planner():
         if goal is None:
             return None
 
-        angle_deg = current_pose.angle_to_point(goal).in_degrees()
-        if abs(angle_deg) > self.angle_tollerance:
-            return action.ActionWithParams(self.turn_action, angle_deg)
+        intermediate_goal = self.path_planner.plan_next_step(
+            current_pose.position, goal)
 
-        distance = current_pose.position.distance_to(goal)
-        move_for = min(self.max_movement_forward, distance)
-        return action.ActionWithParams(self.move_action, move_for)
+        angle_deg = current_pose.angle_to_point(intermediate_goal).in_degrees()
+        distance = current_pose.position.distance_to(intermediate_goal)
+
+        if abs(angle_deg) > self.angle_tollerance:
+            return action.ActionWithParams(self.turn_move_action, angle_deg,
+                                           distance)
+
+        return action.ActionWithParams(self.move_action, distance)
 
     def select_new_goal(self, current_pose: geometry.Pose):
         predicted_world, origin = self.observed_world.predict_world()

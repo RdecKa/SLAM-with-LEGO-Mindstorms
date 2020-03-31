@@ -78,7 +78,7 @@ class Angle():
         self.transform_to_range()
 
     def __str__(self):
-        return f"{self.angle}°"
+        return f"{self.angle:.2f}°"
 
     def __add__(self, other: Angle):
         return Angle(self.angle + other.angle)

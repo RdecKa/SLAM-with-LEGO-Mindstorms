@@ -1,3 +1,4 @@
+import random
 from typing import Callable, Dict, List, Tuple
 
 import numpy as np
@@ -105,6 +106,11 @@ class ObservedWorld(world.World):
             y_max = max(y_max, max(y_coords))
         return (geometry.Point(x_min, y_min), geometry.Point(x_max, y_max))
 
+    def point_in_bounds(self, point: geometry.Point) -> bool:
+        min_border, max_border = self.get_world_borders()
+        return min_border.x <= point.x <= max_border.x and \
+            min_border.y <= point.y <= max_border.y
+
     def predict_world(self, sigma: int = 1) \
             -> Tuple[np.ndarray, geometry.Point]:
         """
@@ -139,6 +145,40 @@ class ObservedWorld(world.World):
         predicted = gaussian_filter(predicted, sigma=sigma)
         self.last_prediction_blurred = predicted
         return (predicted, min_border)
+
+    def get_state_on_coordiante(self, location: geometry.Point, blurred=True):
+        min_border, _ = self.get_world_borders()
+        x = int(round(location.x - min_border.x))
+        y = int(round(location.y - min_border.y))
+        if blurred:
+            return self.last_prediction_blurred[y][x]
+        else:
+            return self.last_prediction[y][x]
+
+    def get_random_point(self, min_value: float = np.NINF,
+                         max_value: float = np.Inf, blurred=True) \
+            -> geometry.Point:
+        """
+        Returns a random point with value between min_value and max_value.
+        Returns None if there is no such a value.
+        """
+        if blurred:
+            grid = self.last_prediction_blurred
+        else:
+            grid = self.last_prediction
+
+        candidates = []
+        for y in range(len(grid)):
+            for x in range(len(grid[y])):
+                if min_value <= grid[y][x] <= max_value:
+                    candidates.append((x, y))
+        if len(candidates) == 0:
+            return None
+
+        min_border, _ = self.get_world_borders()
+        index = random.randint(0, len(candidates) - 1)
+        x, y = candidates[index]
+        return geometry.Point(min_border.x + x, min_border.y + y)
 
     def print(self):
         s = []

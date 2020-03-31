@@ -24,9 +24,12 @@ class Robot(agent.Agent):
         self.observed_world = oworld.ObservedWorld()
         turn_action = action.Action(self.rotate)
         move_action = action.Action(self.move_forward)
+        turn_move_action = action.Action(self.rotate_move_action)
+
         self.planner = planner.Planner(self.observed_world, data_queue,
                                        turn_action=turn_action,
-                                       move_action=move_action)
+                                       move_action=move_action,
+                                       turn_move_action=turn_move_action)
 
         self.init_sensor()
         self.scanner.start()
@@ -41,12 +44,16 @@ class Robot(agent.Agent):
                                           self.scanning_precision)
 
     def move_forward(self, distance: float):
-        logging.info(f"Move forward for {distance}.")
+        logging.info(f"Move forward for {distance:.2f}.")
         self.pose.move_forward(distance)
 
     def rotate(self, angle: int):
-        logging.info(f"Rotate for {angle} degrees.")
+        logging.info(f"Rotate for {angle:.2f} degrees.")
         self.pose.rotate(angle)
+
+    def rotate_move_action(self, angle: int = 0, distance: float = 0.0):
+        self.rotate(angle)
+        self.move_forward(distance)
 
     def scan(self):
         logging.info(f"Scan {self.view_angle/2} in each direction.")
@@ -107,6 +114,8 @@ class SimulatedRobot(Robot):
         if action is None:
             logging.info("Done")
             return False
+
+        time.sleep(1)
 
         action.execute()
 
