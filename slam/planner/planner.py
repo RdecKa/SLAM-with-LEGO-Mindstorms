@@ -8,7 +8,6 @@ import slam.common.geometry as geometry
 import slam.planner.action as action
 import slam.planner.path as spath
 import slam.world.observed as oworld
-from slam.common.enums import Message
 
 
 class Planner():
@@ -52,7 +51,6 @@ class Planner():
         if predicted_world is None or origin is None:
             return
         self.data_queue.put(datapoint.Prediction(*origin, predicted_world))
-        self.data_queue.put(Message.DELETE_TEMPORARY_DATA)
         frontier = self.get_unknown_locations(self.observed_world)
         self.data_queue.put(frontier)
 

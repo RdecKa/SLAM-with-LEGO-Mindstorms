@@ -11,7 +11,7 @@ import slam.planner.action as action
 import slam.planner.planner as planner
 import slam.world.observed as oworld
 import slam.world.simulated as sworld
-from slam.common.enums import PathId
+from slam.common.enums import Message, PathId
 
 
 class Robot(agent.Agent):
@@ -125,5 +125,7 @@ class SimulatedRobot(Robot):
         data = datapoint.Pose(*self.pose, path_id=PathId.ROBOT_HISTORY)
         self.data_queue.put(data)
 
-        time.sleep(.5)
+        self.data_queue.put(Message.DELETE_TEMPORARY_DATA)
+
+        time.sleep(1)
         return True

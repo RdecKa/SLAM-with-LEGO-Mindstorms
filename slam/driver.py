@@ -12,7 +12,7 @@ def run():
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
     map = smap.Map()
-    origin = geometry.Pose(5, 5, 45)
+    origin = geometry.Pose(25, 5, 45)
     data_queue = queue.Queue()
     agent = robot.SimulatedRobot(data_queue, origin, scanning_precision=30,
                                  view_angle=360)

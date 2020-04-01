@@ -11,12 +11,12 @@ class SimulatedWorld(world.World):
             for j in range(10):
                 self.map[i][j] = 1
 
-        for i in range(15, 20):
+        for i in range(15, 25):
             for j in range(35, 50):
                 self.map[i][j] = 1
 
-        for i in range(30, 50):
-            for j in range(20, 25):
+        for i in range(30, 40):
+            for j in range(10, 25):
                 self.map[i][j] = 1
 
         self.pose = pose
