@@ -114,7 +114,7 @@ class TestPolar(unittest.TestCase):
 
     def test_str(self):
         p = geometry.Polar(45, 5.)
-        self.assertEqual(str(p), "<45°, 5.00>")
+        self.assertEqual(str(p), "<45.00°, 5.00>")
 
     def test_change(self):
         p = geometry.Polar(45, 5.)
@@ -157,7 +157,7 @@ class TestAngle(unittest.TestCase):
 
     def test_str(self):
         a = geometry.Angle(5)
-        self.assertEqual(str(a), "5°")
+        self.assertEqual(str(a), "5.00°")
 
     def test_add(self):
         def test_helper(angle_1, angle_2, expected_angle):
@@ -222,7 +222,7 @@ class TestPose(unittest.TestCase):
 
     def test_str(self):
         p = geometry.Pose(5.5555, 9.9999, 100)
-        self.assertEqual(str(p), "(5.56, 10.00), 100°")
+        self.assertEqual(str(p), "(5.56, 10.00), 100.00°")
 
     def test_getitem(self):
         p = geometry.Pose(-5.12, 10.598, -50)

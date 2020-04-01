@@ -12,7 +12,7 @@ class DataPoint():
                  path_style: str = "-",
                  existence: Existence = Existence.PERMANENT):
         self.location = geometry.Point(x, y)
-        self.color = color if color else (0., 0., 0., 0.3)
+        self.color = color if color is not None else (0., 0., 0., 0.3)
         self.graph_type = enums.GraphType.SCATTER
         self.path_id = path_id
         self.path_style = path_style
