@@ -13,3 +13,8 @@ class Existence(enum.Enum):
 
 class Message(enum.Enum):
     DELETE_TEMPORARY_DATA = enum.auto()
+
+
+class PathId(enum.Enum):
+    ROBOT_HISTORY = enum.auto()
+    ROBOT_PATH_PLAN = enum.auto()

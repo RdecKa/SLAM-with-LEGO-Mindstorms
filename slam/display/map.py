@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import slam.common.datapoint as datapoint
-from slam.common.enums import Existence, GraphType, Message
+from slam.common.enums import Existence, GraphType, Message, PathId
 
 plt.ion()
 
@@ -16,13 +16,15 @@ class Map():
         self.init_heatmap_data()
         self.draw_path = draw_path
         if draw_path:
-            self.path_data = np.empty([0, 2])
+            self.path_data = {
+                path_id: [np.empty([0, 2]), "-"] for path_id in PathId}
+            self.path = dict()
         self.init_graph()
 
     def init_graph(self):
         self.figure, self.ax = plt.subplots()
         self.scat = None
-        self.path = None
+        self.path = dict()
         self.heat = None
 
     def init_scatter_data(self):
@@ -61,11 +63,14 @@ class Map():
 
         # Path
         if self.draw_path:
-            if self.path:
-                self.path.remove()
-            path = mpath.Path(self.path_data, self.compute_path_codes())
-            patch = patches.PathPatch(path, fill=False, lw=1)
-            self.path = self.ax.add_patch(patch)
+            for path_id in self.path_data:
+                if path_id in self.path and self.path[path_id]:
+                    self.path[path_id].remove()
+                data = self.path_data[path_id]
+                codes = self.compute_path_codes(data[0])
+                path = mpath.Path(data[0], codes)
+                patch = patches.PathPatch(path, fill=False, lw=1, ls=data[1])
+                self.path[path_id] = self.ax.add_patch(patch)
 
         # Draw and flush
         self.figure.canvas.draw()
@@ -84,9 +89,10 @@ class Map():
                         self.data[GraphType.SCATTER.name][d.existence.name][1],
                         d.color
                     ))
-                if self.draw_path and isinstance(data, datapoint.Pose):
-                    self.path_data = np.vstack(
-                        (self.path_data, [*data.location]))
+                if self.draw_path and data.path_id is not None:
+                    self.path_data[data.path_id][0] = np.vstack(
+                        (self.path_data[data.path_id][0], [*data.location]))
+                    self.path_data[data.path_id][1] = data.path_style
         elif data.graph_type == GraphType.HEATMAP:
             heatmap_data = np.empty([0, 3])
             origin_x, origin_y = *data.location,
@@ -104,10 +110,13 @@ class Map():
         if msg == Message.DELETE_TEMPORARY_DATA:
             self.data[GraphType.SCATTER.name][Existence.TEMPORARY.name] = \
                 [np.empty([0, 2]), np.empty([0, 4])]
+            if self.draw_path:
+                self.path_data[PathId.ROBOT_PATH_PLAN] = [np.empty([0, 2]),
+                                                          "--"]
         else:
             raise TypeError(f"Unknown Message type {msg}")
 
-    def compute_path_codes(self):
-        if (len(self.path_data) == 0):
+    def compute_path_codes(self, path_data):
+        if (len(path_data) == 0):
             return []
-        return [mpath.Path.MOVETO] + [mpath.Path.LINETO] * (len(self.path_data) - 1)
+        return [mpath.Path.MOVETO] + [mpath.Path.LINETO] * (len(path_data) - 1)

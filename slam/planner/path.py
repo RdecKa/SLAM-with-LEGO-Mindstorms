@@ -6,7 +6,7 @@ import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
 import slam.planner.graph as sgraph
 import slam.world.observed as oworld
-from slam.common.enums import Existence
+from slam.common.enums import Existence, PathId
 
 
 class PathPlanner():
@@ -29,6 +29,8 @@ class PathPlanner():
             return node.location
 
         data = datapoint.DataPoint(*goal, color=(1., 0.6, 0., 1.),
+                                   path_id=PathId.ROBOT_PATH_PLAN,
+                                   path_style="--",
                                    existence=Existence.TEMPORARY)
         self.data_queue.put(data)
 
@@ -36,6 +38,8 @@ class PathPlanner():
         while node.parent.parent is not None:
             node = node.parent
             data = datapoint.DataPoint(*node.location, color=color,
+                                       path_id=PathId.ROBOT_PATH_PLAN,
+                                       path_style="--",
                                        existence=Existence.TEMPORARY)
             self.data_queue.put(data)
 

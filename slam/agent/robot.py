@@ -11,6 +11,7 @@ import slam.planner.action as action
 import slam.planner.planner as planner
 import slam.world.observed as oworld
 import slam.world.simulated as sworld
+from slam.common.enums import PathId
 
 
 class Robot(agent.Agent):
@@ -35,7 +36,7 @@ class Robot(agent.Agent):
         self.scanner.start()
 
         # Send initial position to the queue
-        data = datapoint.Pose(*self.pose)
+        data = datapoint.Pose(*self.pose, path_id=PathId.ROBOT_HISTORY)
         self.data_queue.put(data)
 
     def init_sensor(self):
@@ -121,7 +122,7 @@ class SimulatedRobot(Robot):
 
         logging.info(f"\tNew pose: {self.pose}")
 
-        data = datapoint.Pose(*self.pose)
+        data = datapoint.Pose(*self.pose, path_id=PathId.ROBOT_HISTORY)
         self.data_queue.put(data)
 
         time.sleep(.5)

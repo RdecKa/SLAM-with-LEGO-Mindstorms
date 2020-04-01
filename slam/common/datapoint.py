@@ -8,11 +8,14 @@ from slam.common.enums import Existence
 
 
 class DataPoint():
-    def __init__(self, x, y, color=None,
+    def __init__(self, x, y, color=None, path_id: int = None,
+                 path_style: str = "-",
                  existence: Existence = Existence.PERMANENT):
         self.location = geometry.Point(x, y)
         self.color = color if color else (0., 0., 0., 0.3)
         self.graph_type = enums.GraphType.SCATTER
+        self.path_id = path_id
+        self.path_style = path_style
         self.existence = existence
 
     def __eq__(self, other: DataPoint):
@@ -37,9 +40,9 @@ class Observation(DataPoint):
 
 
 class Pose(DataPoint):
-    def __init__(self, x, y, angle):
+    def __init__(self, x, y, angle, path_id: int = None):
         c = (0.9, 0.2, 0.1, 0.3)
-        super().__init__(x, y, color=c)
+        super().__init__(x, y, color=c, path_id=path_id)
         self.angle = geometry.Angle(angle)
 
 
