@@ -42,8 +42,9 @@ class TestScatterStorage(unittest.TestCase):
 
     def test_get_data(self):
         self.add_raw_data()
-        xy_data, c_data = self.storage.get_data()
-        self.assertTrue(arrays_almost_equal(xy_data, raw_scatter_data[:, 0:2]))
+        x_data, y_data, c_data = self.storage.get_data()
+        self.assertTrue(arrays_almost_equal(x_data, raw_scatter_data[:, 0]))
+        self.assertTrue(arrays_almost_equal(y_data, raw_scatter_data[:, 1]))
         self.assertTrue(arrays_almost_equal(c_data, raw_scatter_data[:, 2:6]))
 
     def test_delete_temporary_data(self):

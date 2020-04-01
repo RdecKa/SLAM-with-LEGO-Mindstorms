@@ -17,8 +17,28 @@ class MapStorage():
         if draw_path:
             self.path_storage = PathStorage()
 
+    def get_scatter_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        return self.scatter_storage.get_data()
+
+    def get_heatmap_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        return self.heatmap_storage.get_data()
+
+    def get_path_data(self) -> Dict[PathId, PathStorageEntry]:
+        return self.path_storage.get_data()
+
+    def add_scatter_data(self, data: datapoint.DataPoint):
+        self.scatter_storage.add_data(data)
+
+    def add_heatmap_data(self, data: datapoint.DataPoint):
+        self.heatmap_storage.set_data(data)
+
     def add_path_data(self, data: datapoint.DataPoint):
         self.path_storage.add_data(data)
+
+    def delete_temporary_data(self):
+        self.scatter_storage.delete_temporary_data()
+        if self.draw_path:
+            self.path_storage.delete_temporary_data()
 
 
 class ScatterStorage():
@@ -28,11 +48,12 @@ class ScatterStorage():
     def add_data(self, data: datapoint.DataPoint):
         self.data[data.existence].add_data(data)
 
-    def get_data(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         data = np.vstack([self.data[e].get_data() for e in Existence])
-        xy_data = data[:, 0:2]
+        x_data = data[:, 0]
+        y_data = data[:, 1]
         c_data = data[:, 2:6]
-        return (xy_data, c_data)
+        return (x_data, y_data, c_data)
 
     def delete_temporary_data(self):
         self.data[Existence.TEMPORARY] = ScatterStorageEntry()
@@ -74,8 +95,8 @@ class HeatmapStorage():
     def get_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         x_data = self.data[:, 0]
         y_data = self.data[:, 1]
-        c_data = self.data[:, 2]
-        return (x_data, y_data, c_data)
+        w_data = self.data[:, 2]
+        return (x_data, y_data, w_data)
 
 
 class PathStorage():
