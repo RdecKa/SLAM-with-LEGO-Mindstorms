@@ -35,7 +35,8 @@ class PathPlanner():
         self.data_queue.put(data)
 
         color = (1., 0.6, 0., 0.3)
-        while node.parent.parent is not None:
+        while node.parent is not None:
+            old_node = node
             node = node.parent
             data = datapoint.DataPoint(*node.location, color=color,
                                        path_id=PathId.ROBOT_PATH_PLAN,
@@ -43,7 +44,7 @@ class PathPlanner():
                                        existence=Existence.TEMPORARY)
             self.data_queue.put(data)
 
-        return node.location
+        return old_node.location
 
     def find_path(self, graph: sgraph.Graph, goal: geometry.Point):
         """
