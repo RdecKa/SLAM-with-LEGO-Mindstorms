@@ -1,7 +1,7 @@
+import logging
 import queue
 
 import numpy as np
-from scipy.signal import convolve2d
 
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
@@ -29,13 +29,22 @@ class Planner():
     def select_next_action(self, current_pose: geometry.Pose) -> \
             action.ActionWithParams:
 
-        goal = self.select_new_goal(current_pose)
+        intermediate_goal = None
+        c = 0
+        num_allowed_tries = 2
+        while intermediate_goal is None and c < num_allowed_tries:
+            goal = self.select_new_goal(current_pose)
+            if goal is None:
+                return None
+            intermediate_goal = self.path_planner.plan_next_step(
+                current_pose.position, goal)
+            c += 1
 
-        if goal is None:
+        if intermediate_goal is None:
+            logging.warning(f"Couldn't find a reachable goal in "
+                            f"{num_allowed_tries} "
+                            f"{'try' if num_allowed_tries == 1 else 'tries'}")
             return None
-
-        intermediate_goal = self.path_planner.plan_next_step(
-            current_pose.position, goal)
 
         angle_deg = current_pose.angle_to_point(intermediate_goal).in_degrees()
         distance = current_pose.position.distance_to(intermediate_goal)
@@ -62,31 +71,38 @@ class Planner():
         """
         Finds locations where the search can be continued (locations free of
         obstacles that are near to locations with unknown occupancy).
+        TODO: Make selection more precize.
         """
         grid = observed_world.last_prediction_blurred
-        kernel = np.ones([kernel_size, kernel_size])
-        conv = convolve2d(grid, kernel, mode="same", boundary="symm")
         y_shape, x_shape = grid.shape
         frontier = []
         min_border, _ = observed_world.get_world_borders()
         for yi in range(y_shape):
             for xi in range(x_shape):
-                if -0.1 < grid[yi][xi] < 0 and conv[yi][xi] < 0:
-                    x = min_border.x + xi
-                    y = min_border.y + yi
-                    frontier.append(geometry.Point(x, y))
+                x = min_border.x + xi
+                y = min_border.y + yi
+                p = geometry.Point(x, y)
+                if -1 < grid[yi][xi] < 0 and \
+                        self.observed_world.is_surrrounding_free(p, radius=1):
+                    frontier.append(p)
         return datapoint.Frontier(min_border.x, min_border.y, frontier)
 
     def select_from_frontier(self, frontier: datapoint.Frontier,
                              current_pose: geometry.Pose) -> geometry.Point:
+        """
+        Selects a point to be visited next.
+        TODO: Take orientation in consideration.
+        TODO: Add some randomness.
+        """
         if len(frontier) == 0:
             return None
 
         num_points = len(frontier)
         distances = np.zeros([num_points, num_points])
         for i in range(num_points):
+            p = frontier[i].location
             for j in range(i+1, num_points):
-                d = frontier[i].location.distance_to(frontier[j].location)
+                d = p.distance_to(frontier[j].location)
                 distances[i][j] = d
                 distances[j][i] = d
 

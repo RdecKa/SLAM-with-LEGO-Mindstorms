@@ -11,7 +11,7 @@ from slam.common.enums import Existence, PathId
 
 class PathPlanner():
     def __init__(self, observed_world: oworld.ObservedWorld,
-                 step_size: int = 10, tilt_towards_goal: float = 0.9,
+                 step_size: int = 10, tilt_towards_goal: float = 0.7,
                  distance_tollerance: float = 5.0,
                  data_queue: queue.Queue = None):
         self.observed_world = observed_world
@@ -25,24 +25,37 @@ class PathPlanner():
         graph.add_node(sgraph.Node(start))
 
         node = self.find_path(graph, goal)
-        if node.parent is None:
-            return node.location
+        if node is None:
+            return None
 
+        # Add goal to path
         data = datapoint.DataPoint(*goal, color=(1., 0.6, 0., 1.),
                                    path_id=PathId.ROBOT_PATH_PLAN,
                                    path_style="--",
                                    existence=Existence.TEMPORARY)
         self.data_queue.put(data)
 
+        if node.parent is None:
+            logging.warning(f"Path planner returned starting point")
+            return node.location
+
         color = (1., 0.6, 0., 0.3)
         while node.parent is not None:
             old_node = node
-            node = node.parent
+
             data = datapoint.DataPoint(*node.location, color=color,
                                        path_id=PathId.ROBOT_PATH_PLAN,
                                        path_style="--",
                                        existence=Existence.TEMPORARY)
             self.data_queue.put(data)
+            node = node.parent
+
+        # Add starting position to path
+        data = datapoint.DataPoint(*start, color=(1., 0.6, 0., 0.3),
+                                   path_id=PathId.ROBOT_PATH_PLAN,
+                                   path_style="--",
+                                   existence=Existence.TEMPORARY)
+        self.data_queue.put(data)
 
         return old_node.location
 
@@ -79,14 +92,18 @@ class PathPlanner():
                 logging.warning(f"Path candidate out of bounds {candidate}")
                 continue
 
-            occupancy = self.observed_world.get_state_on_coordiante(candidate)
-            if occupancy < 0:  # TODO: Needs better check (check walls nearby)
+            if self.observed_world.is_surrrounding_free(candidate, 3):
                 # Free spot
                 new_node = sgraph.Node(candidate, parent)
                 graph.add_node(new_node)
 
                 if candidate.distance_to(goal) < self.tollerance:
                     return new_node
+
+                if len(graph) > 100:
+                    # Give up trying to find path to the goal
+                    logging.warning(f"Couldn't find a path to node {goal}")
+                    return None
 
 
 def get_fun_distance_to(goal: geometry.Point):

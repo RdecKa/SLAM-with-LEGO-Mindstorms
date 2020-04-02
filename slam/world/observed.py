@@ -155,6 +155,17 @@ class ObservedWorld(world.World):
         else:
             return self.last_prediction[y][x]
 
+    def is_surrrounding_free(self, location: geometry.Point, radius: int = 5,
+                             blurred=True):
+        loc_x, loc_y = *location,
+        for yi in range(-radius, radius + 1):
+            for xi in range(-radius, radius + 1):
+                point = geometry.Point(loc_x + xi, loc_y + yi)
+                if self.point_in_bounds(point) and \
+                        self.get_state_on_coordiante(point) > 0:
+                    return False
+        return True
+
     def get_random_point(self, min_value: float = np.NINF,
                          max_value: float = np.Inf, blurred=True) \
             -> geometry.Point:
