@@ -116,7 +116,7 @@ class SimulatedRobot(Robot):
             logging.info("Done")
             return False
 
-        time.sleep(1)
+        time.sleep(3)
 
         action.execute()
 

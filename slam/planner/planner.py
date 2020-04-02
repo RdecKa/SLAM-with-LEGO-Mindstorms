@@ -29,15 +29,39 @@ class Planner():
 
     def select_next_action(self, current_pose: geometry.Pose) -> \
             action.ActionWithParams:
+        goal = self.select_new_goal(current_pose)
+        if goal is None:
+            return None
+
+        angle_deg = current_pose.angle_to_point(goal).in_degrees()
+        distance = current_pose.position.distance_to(goal)
+
+        if abs(angle_deg) > self.angle_tollerance:
+            return action.ActionWithParams(self.turn_move_action, angle_deg,
+                                           distance)
+
+        return action.ActionWithParams(self.move_action, distance)
+
+    def select_new_goal(self, current_pose: geometry.Pose):
+        predicted_world, origin = self.observed_world.predict_world()
+        if predicted_world is None or origin is None:
+            return None
+
+        self.data_queue.put(datapoint.Prediction(*origin, predicted_world))
+        frontier = self.get_unknown_locations(self.observed_world)
+        self.data_queue.put(frontier)
 
         intermediate_goal = None
         c = 0
         num_allowed_tries = 5
         while intermediate_goal is None and c < num_allowed_tries:
             select_randomly = c > 0
-            goal = self.select_new_goal(current_pose, select_randomly)
+            goal = self.select_from_frontier(frontier, current_pose,
+                                             select_randomly)
             if goal is None:
+                # No candidates remain
                 return None
+
             intermediate_goal = self.path_planner.plan_next_step(
                 current_pose.position, goal)
             c += 1
@@ -48,26 +72,7 @@ class Planner():
                             f"{'try' if num_allowed_tries == 1 else 'tries'}")
             return None
 
-        angle_deg = current_pose.angle_to_point(intermediate_goal).in_degrees()
-        distance = current_pose.position.distance_to(intermediate_goal)
-
-        if abs(angle_deg) > self.angle_tollerance:
-            return action.ActionWithParams(self.turn_move_action, angle_deg,
-                                           distance)
-
-        return action.ActionWithParams(self.move_action, distance)
-
-    def select_new_goal(self, current_pose: geometry.Pose,
-                        select_randomly: bool = False):
-        predicted_world, origin = self.observed_world.predict_world()
-        if predicted_world is None or origin is None:
-            return None
-        self.data_queue.put(datapoint.Prediction(*origin, predicted_world))
-        frontier = self.get_unknown_locations(self.observed_world)
-        self.data_queue.put(frontier)
-
-        return self.select_from_frontier(frontier, current_pose,
-                                         select_randomly)
+        return intermediate_goal
 
     def get_unknown_locations(self, observed_world: oworld.ObservedWorld,
                               kernel_size: int = 5,
