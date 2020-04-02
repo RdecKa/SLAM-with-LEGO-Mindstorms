@@ -93,9 +93,11 @@ class Planner():
                 p = geometry.Point(x, y)
                 if grid[yi][xi] >= 0:
                     continue
+                if grid[yi][xi] < -5:
+                    continue  # Enough evidence that here is a free spot
                 if not self.observed_world.is_surrrounding_free(p, radius=1):
                     continue
-                u = self.observed_world.perc_unknown_surround(p, radius=3)
+                u = self.observed_world.perc_unknown_surround(p, radius=2)
                 if u < 0.01:
                     continue
                 frontier.append(p)

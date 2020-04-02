@@ -64,9 +64,7 @@ class PathPlanner():
         Returns a node that is less than self.tollerance away from the
         goal. Use Node.parent recursively to get the whole path.
         """
-        threshold = -100
         while True:
-            threshold *= 0.9
             r = random.random()
             if r < self.tilt_towards_goal:
                 target = goal
@@ -74,10 +72,9 @@ class PathPlanner():
                 # Select random point
                 while True:
                     target = self.observed_world.get_random_point(
-                        max_value=threshold)
+                        max_value=-1)
                     if target is not None:
                         break
-                    threshold /= 2
 
             # Find node that is closest to the target
             parent = min(graph, key=get_fun_distance_to(target))
