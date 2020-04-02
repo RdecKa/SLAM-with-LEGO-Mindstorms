@@ -1,5 +1,6 @@
 import logging
 import queue
+import random
 
 import numpy as np
 
@@ -31,9 +32,10 @@ class Planner():
 
         intermediate_goal = None
         c = 0
-        num_allowed_tries = 2
+        num_allowed_tries = 5
         while intermediate_goal is None and c < num_allowed_tries:
-            goal = self.select_new_goal(current_pose)
+            select_randomly = c > 0
+            goal = self.select_new_goal(current_pose, select_randomly)
             if goal is None:
                 return None
             intermediate_goal = self.path_planner.plan_next_step(
@@ -55,15 +57,17 @@ class Planner():
 
         return action.ActionWithParams(self.move_action, distance)
 
-    def select_new_goal(self, current_pose: geometry.Pose):
+    def select_new_goal(self, current_pose: geometry.Pose,
+                        select_randomly: bool = False):
         predicted_world, origin = self.observed_world.predict_world()
         if predicted_world is None or origin is None:
-            return
+            return None
         self.data_queue.put(datapoint.Prediction(*origin, predicted_world))
         frontier = self.get_unknown_locations(self.observed_world)
         self.data_queue.put(frontier)
 
-        return self.select_from_frontier(frontier, current_pose)
+        return self.select_from_frontier(frontier, current_pose,
+                                         select_randomly)
 
     def get_unknown_locations(self, observed_world: oworld.ObservedWorld,
                               kernel_size: int = 5,
@@ -88,11 +92,11 @@ class Planner():
         return datapoint.Frontier(min_border.x, min_border.y, frontier)
 
     def select_from_frontier(self, frontier: datapoint.Frontier,
-                             current_pose: geometry.Pose) -> geometry.Point:
+                             current_pose: geometry.Pose,
+                             select_randomly: bool = False) -> geometry.Point:
         """
         Selects a point to be visited next.
         TODO: Take orientation in consideration.
-        TODO: Add some randomness.
         """
         if len(frontier) == 0:
             return None
@@ -114,7 +118,14 @@ class Planner():
         if len(candidates) == 0:
             return None
 
-        nearest = min(candidates,
-                      key=lambda p: geometry.Point(*p.location).distance_to(
-                        current_pose.position))
-        return geometry.Point(*nearest.location)
+        if select_randomly:
+            index = random.randint(0, len(candidates) - 1)
+            chosen = candidates[index]
+            logging.info(f"Selected goal: {chosen.location} "
+                         f"(selected randomly)")
+        else:
+            chosen = min(candidates,
+                         key=lambda p: geometry.Point(*p.location).distance_to(
+                            current_pose.position))
+            logging.info(f"Selected goal: {chosen.location}")
+        return geometry.Point(*chosen.location)
