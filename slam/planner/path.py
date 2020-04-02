@@ -11,7 +11,7 @@ from slam.common.enums import Existence, PathId
 
 class PathPlanner():
     def __init__(self, observed_world: oworld.ObservedWorld,
-                 step_size: int = 10, tilt_towards_goal: float = 0.7,
+                 step_size: int = 10, tilt_towards_goal: float = 0.8,
                  distance_tollerance: float = 5.0,
                  data_queue: queue.Queue = None):
         self.observed_world = observed_world

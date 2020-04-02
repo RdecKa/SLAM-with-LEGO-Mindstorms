@@ -70,6 +70,9 @@ class PredefinedWorld(SimulatedWorld):
             p = geometry.Pose(45, 45, 180)
         elif key == 4:
             w, h = 50, 50
-            o = [(0, 30, 20, 40), (30, 0, 49, 15)]
+            o = [(0, 20, 20, 35), (30, 0, 49, 15)]
+        elif key == 5:
+            w, h = 50, 50
+            o = [(0, 20, 20, 35), (30, 0, 35, 15)]
 
         super().__init__(width=w, height=h, pose=p, obstacles=o)

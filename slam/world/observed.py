@@ -128,7 +128,7 @@ class ObservedWorld(world.World):
         else:
             predicted = np.zeros([height, width])
             reset_saved_prediction = True
-        kernel = get_obstacle_filter()
+        kernel = get_obstacle_filter(sigma=1)
         for (position, observations) in self.map.items():
             if not reset_saved_prediction and observations.used_in_prediction:
                 continue
