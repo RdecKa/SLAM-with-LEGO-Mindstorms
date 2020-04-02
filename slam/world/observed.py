@@ -156,15 +156,34 @@ class ObservedWorld(world.World):
             return self.last_prediction[y][x]
 
     def is_surrrounding_free(self, location: geometry.Point, radius: int = 5,
-                             blurred=True):
+                             threshold: float = 0.0):
         loc_x, loc_y = *location,
         for yi in range(-radius, radius + 1):
             for xi in range(-radius, radius + 1):
                 point = geometry.Point(loc_x + xi, loc_y + yi)
                 if self.point_in_bounds(point) and \
-                        self.get_state_on_coordiante(point) > 0:
+                        self.get_state_on_coordiante(point) > threshold:
                     return False
         return True
+
+    def perc_unknown_surround(self, location: geometry.Point,
+                              radius: int = 5) -> float:
+        """
+        Returns percentage of unknown cells around location. Points that are
+        not within the world borders are not included in calculation.
+        """
+        loc_x, loc_y = *location,
+        count = 0
+        total = 0
+        for yi in range(-radius, radius + 1):
+            for xi in range(-radius, radius + 1):
+                point = geometry.Point(loc_x + xi, loc_y + yi)
+                in_bounds = self.point_in_bounds(point)
+                if in_bounds:
+                    total += 1
+                    if self.get_state_on_coordiante(point) == 0:
+                        count += 1
+        return count / total
 
     def get_random_point(self, min_value: float = np.NINF,
                          max_value: float = np.Inf, blurred=True) \

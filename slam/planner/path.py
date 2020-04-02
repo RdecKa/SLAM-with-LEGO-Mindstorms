@@ -100,7 +100,7 @@ class PathPlanner():
                 if candidate.distance_to(goal) < self.tollerance:
                     return new_node
 
-                if len(graph) > 100:
+                if len(graph) > 200:
                     # Give up trying to find path to the goal
                     logging.warning(f"Couldn't find a path to node {goal}")
                     return None

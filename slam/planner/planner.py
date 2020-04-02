@@ -91,9 +91,14 @@ class Planner():
                 x = min_border.x + xi
                 y = min_border.y + yi
                 p = geometry.Point(x, y)
-                if -1 < grid[yi][xi] < 0 and \
-                        self.observed_world.is_surrrounding_free(p, radius=1):
-                    frontier.append(p)
+                if grid[yi][xi] >= 0:
+                    continue
+                if not self.observed_world.is_surrrounding_free(p, radius=1):
+                    continue
+                u = self.observed_world.perc_unknown_surround(p, radius=3)
+                if u < 0.01:
+                    continue
+                frontier.append(p)
         return datapoint.Frontier(min_border.x, min_border.y, frontier)
 
     def select_from_frontier(self, frontier: datapoint.Frontier,
