@@ -1,8 +1,8 @@
 import logging
 import queue
+import time
 
 import slam.agent.robot as robot
-import slam.common.geometry as geometry
 import slam.display.map as smap
 from slam.common.enums import Message
 
@@ -12,10 +12,9 @@ def run():
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
     map = smap.Map()
-    origin = geometry.Pose(25, 5, 45)
     data_queue = queue.Queue()
-    agent = robot.SimulatedRobot(data_queue, origin, scanning_precision=30,
-                                 view_angle=360)
+    agent = robot.SimulatedRobot(data_queue, scanning_precision=30,
+                                 view_angle=360, world_number=4)
     agent.start()
 
     try:
@@ -35,3 +34,11 @@ def run():
 
     agent.shutdown_flag.set()
     agent.join()
+
+    try:
+        logging.info("Waiting for KeyboardInterrupt")
+        while True:
+            map.redraw()
+            time.sleep(3)
+    except KeyboardInterrupt:
+        pass

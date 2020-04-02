@@ -93,9 +93,10 @@ class Robot(agent.Agent):
 
 
 class SimulatedRobot(Robot):
-    def __init__(self, data_queue: queue.Queue, origin: geometry.Pose = None,
-                 scanning_precision: int = 20, view_angle: int = 180):
-        self.simulated_world = sworld.SimulatedWorld()
+    def __init__(self, data_queue: queue.Queue, scanning_precision: int = 20,
+                 view_angle: int = 180, world_number: int = 0):
+        self.simulated_world = sworld.PredefinedWorld(world_number)
+        origin = self.simulated_world.pose
         super().__init__(data_queue, origin, scanning_precision, view_angle)
         self.simulated_world.update_pose(self.pose)
 
