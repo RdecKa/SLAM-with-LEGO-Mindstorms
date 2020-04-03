@@ -12,18 +12,27 @@ import slam.world.observed as oworld
 
 
 class Planner():
+    def __init__(self, turn_action: action.Action, move_action: action.Action,
+                 turn_move_action: action.Action):
+        self.turn_action = turn_action
+        self.move_action = move_action
+        self.turn_move_action = turn_move_action
+
+    def select_next_action(self, current_pose: geometry.Pose):
+        raise NotImplementedError
+
+
+class RrtPlanner(Planner):
     def __init__(self, observed_world: oworld.ObservedWorld,
                  data_queue: queue.Queue, turn_action: action.Action,
                  move_action: action.Action, turn_move_action: action.Action,
                  distance_tollerance: float = 5.0,
                  angle_tollerance: float = 5.0, robot_size: float = 10.0):
+        super().__init__(turn_action, move_action, turn_move_action)
         self.observed_world = observed_world
         self.data_queue = data_queue
         self.distance_tollerance = distance_tollerance
         self.angle_tollerance = angle_tollerance
-        self.turn_action = turn_action
-        self.move_action = move_action
-        self.turn_move_action = turn_move_action
         self.robot_size = robot_size
         self.path_planner = spath.PathPlanner(observed_world,
                                               max_step_size=2*robot_size,
@@ -146,11 +155,10 @@ class Planner():
         return geometry.Point(*chosen.location)
 
 
-class DummyPlanner():
+class DummyPlanner(Planner):
     def __init__(self, move_action: action.Action,
                  turn_move_action: action.Action):
-        self.move_action = move_action
-        self.turn_move_action = turn_move_action
+        super().__init__(None, move_action, turn_move_action)
 
     def select_next_action(self, current_pose: geometry.Pose) -> \
             action.ActionWithParams:

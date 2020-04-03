@@ -114,11 +114,11 @@ class SimulatedRobot(Robot):
         turn_action = action.Action(self.rotate)
         move_action = action.Action(self.move_forward)
         turn_move_action = action.Action(self.rotate_move_action)
-        self.planner = planner.Planner(self.observed_world, self.data_queue,
-                                       turn_action=turn_action,
-                                       move_action=move_action,
-                                       turn_move_action=turn_move_action,
-                                       robot_size=self.robot_size)
+        self.planner = planner.RrtPlanner(self.observed_world, self.data_queue,
+                                          turn_action=turn_action,
+                                          move_action=move_action,
+                                          turn_move_action=turn_move_action,
+                                          robot_size=self.robot_size)
 
     def scan(self):
         self.simulated_world.update_pose(self.pose)
