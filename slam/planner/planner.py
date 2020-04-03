@@ -26,17 +26,23 @@ class RrtPlanner(Planner):
     def __init__(self, observed_world: oworld.ObservedWorld,
                  data_queue: queue.Queue, turn_action: action.Action,
                  move_action: action.Action, turn_move_action: action.Action,
-                 distance_tollerance: float = 5.0,
+                 distance_tollerance: float = None,
                  angle_tollerance: float = 5.0, robot_size: float = 10.0):
         super().__init__(turn_action, move_action, turn_move_action)
         self.observed_world = observed_world
         self.data_queue = data_queue
-        self.distance_tollerance = distance_tollerance
         self.angle_tollerance = angle_tollerance
         self.robot_size = robot_size
+
+        if distance_tollerance is not None:
+            self.distance_tollerance = distance_tollerance
+        else:
+            self.distance_tollerance = robot_size
+
         self.path_planner = spath.PathPlanner(observed_world,
                                               max_step_size=2*robot_size,
                                               min_step_size=robot_size,
+                                              distance_tollerance=robot_size,
                                               data_queue=data_queue)
 
     def select_next_action(self, current_pose: geometry.Pose) -> \
@@ -86,9 +92,8 @@ class RrtPlanner(Planner):
 
         return intermediate_goal
 
-    def get_unknown_locations(self, observed_world: oworld.ObservedWorld,
-                              kernel_size: int = 5,
-                              sigma: int = 1) -> datapoint.Frontier:
+    def get_unknown_locations(self, observed_world: oworld.ObservedWorld) \
+            -> datapoint.Frontier:
         """
         Finds locations where the search can be continued (locations free of
         obstacles that are near to locations with unknown occupancy).
@@ -105,7 +110,7 @@ class RrtPlanner(Planner):
                 p = geometry.Point(x, y)
                 if grid[yi][xi] >= 0:
                     continue
-                if grid[yi][xi] < -5:
+                if grid[yi][xi] < -10:
                     continue  # Enough evidence that here is a free spot
                 if not self.observed_world.is_surrrounding_free(p, radius=1):
                     continue

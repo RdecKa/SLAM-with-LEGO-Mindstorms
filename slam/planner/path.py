@@ -1,6 +1,7 @@
 import logging
 import queue
 import random
+from typing import Tuple
 
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
@@ -31,12 +32,15 @@ class PathPlanner():
         if node is None:
             return None
 
+        def add_point_to_path(location: geometry.Point, color: Tuple):
+            data = datapoint.DataPoint(*location, color=color,
+                                       path_id=PathId.ROBOT_PATH_PLAN,
+                                       path_style="--",
+                                       existence=Existence.TEMPORARY)
+            self.data_queue.put(data)
+
         # Add goal to path
-        data = datapoint.DataPoint(*goal, color=(1., 0.6, 0., 1.),
-                                   path_id=PathId.ROBOT_PATH_PLAN,
-                                   path_style="--",
-                                   existence=Existence.TEMPORARY)
-        self.data_queue.put(data)
+        add_point_to_path(goal, (1., 0.6, 0., 1.))
 
         if node.parent is None:
             logging.warning(f"Path planner returned starting point")
@@ -45,20 +49,10 @@ class PathPlanner():
         color = (1., 0.6, 0., 0.3)
         while node.parent is not None:
             old_node = node
-
-            data = datapoint.DataPoint(*node.location, color=color,
-                                       path_id=PathId.ROBOT_PATH_PLAN,
-                                       path_style="--",
-                                       existence=Existence.TEMPORARY)
-            self.data_queue.put(data)
+            add_point_to_path(node.location, color)
             node = node.parent
 
-        # Add starting position to path
-        data = datapoint.DataPoint(*start, color=(1., 0.6, 0., 0.3),
-                                   path_id=PathId.ROBOT_PATH_PLAN,
-                                   path_style="--",
-                                   existence=Existence.TEMPORARY)
-        self.data_queue.put(data)
+        add_point_to_path(start, color)
 
         return old_node.location
 
