@@ -16,7 +16,7 @@ class Planner():
                  data_queue: queue.Queue, turn_action: action.Action,
                  move_action: action.Action, turn_move_action: action.Action,
                  distance_tollerance: float = 5.0,
-                 angle_tollerance: float = 5.0):
+                 angle_tollerance: float = 5.0, robot_size: float = 10.0):
         self.observed_world = observed_world
         self.data_queue = data_queue
         self.distance_tollerance = distance_tollerance
@@ -24,7 +24,10 @@ class Planner():
         self.turn_action = turn_action
         self.move_action = move_action
         self.turn_move_action = turn_move_action
+        self.robot_size = robot_size
         self.path_planner = spath.PathPlanner(observed_world,
+                                              max_step_size=2*robot_size,
+                                              min_step_size=robot_size,
                                               data_queue=data_queue)
 
     def select_next_action(self, current_pose: geometry.Pose) -> \

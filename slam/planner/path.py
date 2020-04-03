@@ -11,11 +11,13 @@ from slam.common.enums import Existence, PathId
 
 class PathPlanner():
     def __init__(self, observed_world: oworld.ObservedWorld,
-                 step_size: int = 10, tilt_towards_goal: float = 0.8,
+                 max_step_size: int = 10, min_step_size: int = 0,
+                 tilt_towards_goal: float = 0.8,
                  distance_tollerance: float = 5.0,
                  data_queue: queue.Queue = None):
         self.observed_world = observed_world
-        self.step_size = step_size
+        self.max_step_size = max_step_size
+        self.min_step_size = min_step_size
         self.tilt_towards_goal = tilt_towards_goal
         self.tollerance = distance_tollerance
         self.data_queue = data_queue
@@ -64,24 +66,29 @@ class PathPlanner():
         Returns a node that is less than self.tollerance away from the
         goal. Use Node.parent recursively to get the whole path.
         """
+        min_step_size = self.min_step_size
         while True:
             r = random.random()
             if r < self.tilt_towards_goal:
                 target = goal
             else:
                 # Select random point
-                while True:
-                    target = self.observed_world.get_random_point(
-                        max_value=-1)
-                    if target is not None:
-                        break
+                target = self.observed_world.get_random_point(max_value=-1)
 
             # Find node that is closest to the target
             parent = min(graph, key=get_fun_distance_to(target))
 
             angle = parent.location.angle_to(target).in_degrees()
             distance = parent.location.distance_to(target)
-            step = min(self.step_size, distance)
+            if distance < min_step_size:
+                # Do not plan too small steps
+                min_step_size *= 0.99
+                if min_step_size < self.min_step_size / 4:
+                    logging.warning(f"min_step_size reduced to a quarter")
+                elif min_step_size < self.min_step_size / 2:
+                    logging.warning(f"min_step_size reduced to a half")
+                continue
+            step = min(self.max_step_size, distance)
             polar = geometry.Polar(angle, step)
 
             candidate = parent.location.plus_polar(polar)
@@ -93,6 +100,7 @@ class PathPlanner():
                 # Free spot
                 new_node = sgraph.Node(candidate, parent)
                 graph.add_node(new_node)
+                min_step_size = self.min_step_size
 
                 if candidate.distance_to(goal) < self.tollerance:
                     return new_node

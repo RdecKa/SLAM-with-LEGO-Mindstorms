@@ -16,7 +16,8 @@ from slam.common.enums import Message, PathId
 
 class Robot(agent.Agent):
     def __init__(self, data_queue: queue.Queue, origin: geometry.Pose = None,
-                 scanning_precision: int = 20, view_angle: int = 180):
+                 robot_size: float = 10.0, scanning_precision: int = 20,
+                 view_angle: int = 180):
         super().__init__(data_queue)
         self.pose = origin if origin else geometry.Pose(0, 0, 0)
         self.scanning_precision = scanning_precision
@@ -30,7 +31,8 @@ class Robot(agent.Agent):
         self.planner = planner.Planner(self.observed_world, data_queue,
                                        turn_action=turn_action,
                                        move_action=move_action,
-                                       turn_move_action=turn_move_action)
+                                       turn_move_action=turn_move_action,
+                                       robot_size=robot_size)
 
         self.init_sensor()
         self.scanner.start()
@@ -93,12 +95,13 @@ class Robot(agent.Agent):
 
 
 class SimulatedRobot(Robot):
-    def __init__(self, data_queue: queue.Queue, scanning_precision: int = 20,
-                 view_angle: int = 180, world_number: int = 0):
+    def __init__(self, data_queue: queue.Queue, robot_size: float = 10.0,
+                 scanning_precision: int = 20, view_angle: int = 180,
+                 world_number: int = 0):
         self.simulated_world = sworld.PredefinedWorld(world_number)
         origin = self.simulated_world.pose
-        super().__init__(data_queue, origin, scanning_precision, view_angle)
-        self.simulated_world.update_pose(self.pose)
+        super().__init__(data_queue, origin, robot_size, scanning_precision,
+                         view_angle)
 
     def init_sensor(self):
         self.scanner = sensor.FullInformationSensor(self.simulated_world,
