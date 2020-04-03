@@ -22,7 +22,8 @@ class PathPlanner():
         self.tollerance = distance_tollerance
         self.data_queue = data_queue
 
-    def plan_next_step(self, start: geometry.Point, goal: geometry.Point):
+    def plan_next_step(self, start: geometry.Point, goal: geometry.Point) \
+            -> geometry.Point:
         graph = sgraph.Graph()
         graph.add_node(sgraph.Node(start))
 

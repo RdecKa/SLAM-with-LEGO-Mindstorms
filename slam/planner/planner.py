@@ -144,3 +144,18 @@ class Planner():
                             current_pose.position))
             logging.info(f"Selected goal: {chosen.location}")
         return geometry.Point(*chosen.location)
+
+
+class DummyPlanner():
+    def __init__(self, move_action: action.Action,
+                 turn_move_action: action.Action):
+        self.move_action = move_action
+        self.turn_move_action = turn_move_action
+
+    def select_next_action(self, current_pose: geometry.Pose) -> \
+            action.ActionWithParams:
+        distance = random.randint(1, 10)
+        if random.random() < 0.7:
+            return action.ActionWithParams(self.move_action, distance)
+        angle = random.randint(1, 359)
+        return action.ActionWithParams(self.turn_move_action, angle, distance)

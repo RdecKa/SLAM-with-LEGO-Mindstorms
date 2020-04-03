@@ -20,20 +20,13 @@ class Robot(agent.Agent):
                  view_angle: int = 180):
         super().__init__(data_queue)
         self.pose = origin if origin else geometry.Pose(0, 0, 0)
+        self.robot_size = robot_size
         self.scanning_precision = scanning_precision
         self.view_angle = view_angle
         self.observation_queue = queue.Queue()
         self.observed_world = oworld.ObservedWorld()
-        turn_action = action.Action(self.rotate)
-        move_action = action.Action(self.move_forward)
-        turn_move_action = action.Action(self.rotate_move_action)
 
-        self.planner = planner.Planner(self.observed_world, data_queue,
-                                       turn_action=turn_action,
-                                       move_action=move_action,
-                                       turn_move_action=turn_move_action,
-                                       robot_size=robot_size)
-
+        self.init_planner()
         self.init_sensor()
         self.scanner.start()
 
@@ -45,6 +38,12 @@ class Robot(agent.Agent):
         self.scanner = sensor.DummySensor(self.observation_queue,
                                           self.view_angle,
                                           self.scanning_precision)
+
+    def init_planner(self):
+        move_action = action.Action(self.move_forward)
+        turn_move_action = action.Action(self.rotate_move_action)
+        self.planner = planner.DummyPlanner(move_action=move_action,
+                                            turn_move_action=turn_move_action)
 
     def move_forward(self, distance: float):
         logging.info(f"Move forward for {distance:.2f}.")
@@ -70,22 +69,24 @@ class Robot(agent.Agent):
             self.observed_world.add_observation(pose_data, observed_data)
 
     def perform_action(self):
-        r = random.random()
-        if r < 0.3:
-            self.scan()
-        elif r < 0.8:
-            distance = random.randint(1, 3)
-            self.move_forward(distance)
-        else:
-            angle = random.randint(1, 30) - 15
-            self.rotate(angle)
+        self.scan()
+        action = self.planner.select_next_action(self.pose)
+        if action is None:
+            logging.info("Done")
+            return False
+
+        time.sleep(1)
+
+        action.execute()
 
         logging.info(f"\tNew pose: {self.pose}")
 
-        data = datapoint.Pose(*self.pose)
+        data = datapoint.Pose(*self.pose, path_id=PathId.ROBOT_HISTORY)
         self.data_queue.put(data)
 
-        time.sleep(.5)
+        self.data_queue.put(Message.DELETE_TEMPORARY_DATA)
+
+        time.sleep(1)
         return True
 
     def die(self):
@@ -109,27 +110,16 @@ class SimulatedRobot(Robot):
                                                     self.view_angle,
                                                     self.scanning_precision)
 
+    def init_planner(self):
+        turn_action = action.Action(self.rotate)
+        move_action = action.Action(self.move_forward)
+        turn_move_action = action.Action(self.rotate_move_action)
+        self.planner = planner.Planner(self.observed_world, self.data_queue,
+                                       turn_action=turn_action,
+                                       move_action=move_action,
+                                       turn_move_action=turn_move_action,
+                                       robot_size=self.robot_size)
+
     def scan(self):
         self.simulated_world.update_pose(self.pose)
         super().scan()
-
-    def perform_action(self):
-        self.scan()
-        action = self.planner.select_next_action(self.pose)
-        if action is None:
-            logging.info("Done")
-            return False
-
-        time.sleep(1)
-
-        action.execute()
-
-        logging.info(f"\tNew pose: {self.pose}")
-
-        data = datapoint.Pose(*self.pose, path_id=PathId.ROBOT_HISTORY)
-        self.data_queue.put(data)
-
-        self.data_queue.put(Message.DELETE_TEMPORARY_DATA)
-
-        time.sleep(1)
-        return True
