@@ -14,6 +14,7 @@ import slam.world.observed as oworld
 class Planner():
     def __init__(self, turn_action: action.Action, move_action: action.Action,
                  turn_move_action: action.Action):
+        logging.info(f"Using planner: {type(self).__name__}")
         self.turn_action = turn_action
         self.move_action = move_action
         self.turn_move_action = turn_move_action

@@ -13,8 +13,7 @@ def run():
 
     map = smap.Map()
     data_queue = queue.Queue()
-    agent = robot.SimulatedRobot(data_queue, scanning_precision=30,
-                                 view_angle=360, world_number=5)
+    agent = robot.LegoRobot(data_queue, scanning_precision=30, view_angle=300)
     agent.start()
 
     try:

@@ -123,3 +123,23 @@ class SimulatedRobot(Robot):
     def scan(self):
         self.simulated_world.update_pose(self.pose)
         super().scan()
+
+
+class LegoRobot(Robot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def init_sensor(self):
+        self.scanner = sensor.LegoIrSensor(self.observation_queue,
+                                           self.view_angle,
+                                           self.scanning_precision)
+
+    def init_planner(self):
+        turn_action = action.Action(self.rotate)
+        move_action = action.Action(self.move_forward)
+        turn_move_action = action.Action(self.rotate_move_action)
+        self.planner = planner.RrtPlanner(self.observed_world, self.data_queue,
+                                          turn_action=turn_action,
+                                          move_action=move_action,
+                                          turn_move_action=turn_move_action,
+                                          robot_size=self.robot_size)

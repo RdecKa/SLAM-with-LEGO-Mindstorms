@@ -19,7 +19,7 @@ class Sensor(threading.Thread):
         self.precision = precision
 
     def run(self):
-        logging.info("Turned sensor on")
+        logging.info(f"Turned sensor {type(self).__name__} on")
         while not self.shutdown_flag.is_set():
             self.scan_flag.wait(3)
             if self.scan_flag.is_set():
@@ -38,7 +38,7 @@ class DummySensor(Sensor):
         super().__init__(data_queue, view_angle, precision)
 
     def scan(self):
-        logging.info("Started scanning")
+        logging.info("Scanning started")
         prev_measurement = 10
         start_angle = int(- self.view_angle / 2)
         for angle in range(start_angle, start_angle + self.view_angle + 1,
@@ -64,7 +64,7 @@ class FullInformationSensor(Sensor):
         self.world = simulated_world
 
     def scan(self):
-        logging.info("Started scanning")
+        logging.info("Scanning started")
         start_angle = int(- self.view_angle / 2)
         for angle in range(start_angle, start_angle + self.view_angle + 1,
                            self.precision):
@@ -74,3 +74,56 @@ class FullInformationSensor(Sensor):
             time.sleep(0.2)
         self.data_queue.put(None)
         logging.info("Scanning finished")
+
+
+class LegoIrSensor(Sensor):
+    """
+    LEGO infrared sensor.
+    Initially turn robot for view_angle // 2. Then change direction of scanning
+    for each run.
+    Example: view_angle=180, precision=90
+        Init: rotate for 90
+        Odd run (1, 3 ...):  scan 90, 0, -90
+        Even run (2, 4 ...): scan -90, 0, 90
+    """
+    def __init__(self, data_queue: queue.Queue, view_angle: int = 360,
+                 precision: int = 20):
+        super().__init__(data_queue, view_angle, precision)
+        self.max_value = 100.0
+
+        # Rotate sensor to starting position
+        starting_orientation = view_angle // 2
+        self.orientation = geometry.Angle(0)
+        self.rotate(starting_orientation)
+
+    def scan(self):
+        logging.info("Scanning started")
+
+        num_steps = self.view_angle // self.precision + 1
+
+        angle = self.precision
+        if self.orientation.in_degrees() > 0:
+            angle = -angle
+
+        for i in range(num_steps):
+            if i > 0:
+                self.rotate(angle)
+
+            m = self.measure()
+            if m >= self.max_value:
+                logging.info(f"Looking at infinity ({m})")
+                continue
+            polar = geometry.Polar(self.orientation.in_degrees(), m)
+            self.data_queue.put(polar)
+        self.data_queue.put(None)
+        logging.info("Scanning finished")
+
+    def rotate(self, angle):
+        self.orientation.change(angle)
+        logging.info(f"Turn motor for {angle} - now "
+                     f"{self.orientation.in_degrees()}")
+        time.sleep(.5)
+
+    def measure(self):
+        logging.info(f"Measure distance")
+        return 10.0
