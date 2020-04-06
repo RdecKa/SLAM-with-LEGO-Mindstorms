@@ -12,9 +12,10 @@ DISTANCE_FACTOR = 36
 ANGLE_FACTOR = 5.65
 SCAN_POSITION_FACTOR = 3
 
-MAX_VALID_MEASUREMENT = 99
+# Actual maximal valid value is 99, but more distant mesurements are more noisy
+MAX_VALID_MEASUREMENT = 99 * 2 / 3
 
-SOUND_ON = True
+SOUND_ON = False
 
 recv_buffer = b""
 end_char = b"\0"
@@ -37,10 +38,11 @@ def establish_connection():
     try:
         serversocket.bind((socket.gethostname(), config.PORT))
     except OSError:
-        msg = "Couldn't open a socket"
+        msg = "Could not open a socket"
         print(msg)
         if SOUND_ON:
             sound.speak(msg)
+        exit(1)
     print("Hostname: " + socket.gethostname() + ", port:" + str(config.PORT))
     serversocket.listen(1)
 
@@ -81,17 +83,17 @@ def receive_from_socket(socket):
 
 def move_forward(distance):
     print("Move forward for " + str(distance))
-    steer_pair.on_for_degrees(steering=0, speed=50,
+    steer_pair.on_for_degrees(steering=0, speed=30,
                               degrees=DISTANCE_FACTOR * distance)
 
 
 def rotate(angle):
     print("Rotate for " + str(angle))
-    steer_pair.on_for_degrees(steering=-100, speed=50,
+    steer_pair.on_for_degrees(steering=-100, speed=30,
                               degrees=ANGLE_FACTOR * angle)
 
 
-def rotate_sensor(angle, block=True, speed=10):
+def rotate_sensor(angle, block=True, speed=5):
     angle_scaled = angle * SCAN_POSITION_FACTOR
     motor_sensor.on_for_degrees(speed=speed,
                                 degrees=angle_scaled,

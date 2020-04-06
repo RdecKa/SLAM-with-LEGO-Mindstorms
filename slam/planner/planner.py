@@ -42,8 +42,8 @@ class RrtPlanner(Planner):
 
         self.path_planner = spath.PathPlanner(observed_world,
                                               max_step_size=2*robot_size,
-                                              min_step_size=robot_size,
-                                              distance_tollerance=robot_size,
+                                              min_step_size=robot_size/2,
+                                              distance_tollerance=2*robot_size,
                                               data_queue=data_queue,
                                               robot_size=robot_size)
 

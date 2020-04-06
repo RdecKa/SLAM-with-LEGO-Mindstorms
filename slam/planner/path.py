@@ -92,8 +92,8 @@ class PathPlanner():
                 logging.warning(f"Path candidate out of bounds {candidate}")
                 continue
 
-            if self.observed_world.is_surrrounding_free(candidate,
-                                                        int(self.robot_size/2),
+            free_radius = int(self.robot_size / 2)
+            if self.observed_world.is_surrrounding_free(candidate, free_radius,
                                                         threshold=1):
                 # Free spot
                 new_node = sgraph.Node(candidate, parent)
