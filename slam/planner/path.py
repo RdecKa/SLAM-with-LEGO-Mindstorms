@@ -15,13 +15,14 @@ class PathPlanner():
                  max_step_size: int = 10, min_step_size: int = 0,
                  tilt_towards_goal: float = 0.8,
                  distance_tollerance: float = 5.0,
-                 data_queue: queue.Queue = None):
+                 data_queue: queue.Queue = None, robot_size: float = 10.0):
         self.observed_world = observed_world
         self.max_step_size = max_step_size
         self.min_step_size = min_step_size
         self.tilt_towards_goal = tilt_towards_goal
         self.tollerance = distance_tollerance
         self.data_queue = data_queue
+        self.robot_size = robot_size
 
     def plan_next_step(self, start: geometry.Point, goal: geometry.Point) \
             -> geometry.Point:
@@ -91,7 +92,9 @@ class PathPlanner():
                 logging.warning(f"Path candidate out of bounds {candidate}")
                 continue
 
-            if self.observed_world.is_surrrounding_free(candidate, 3):
+            if self.observed_world.is_surrrounding_free(candidate,
+                                                        int(self.robot_size/2),
+                                                        threshold=1):
                 # Free spot
                 new_node = sgraph.Node(candidate, parent)
                 graph.add_node(new_node)

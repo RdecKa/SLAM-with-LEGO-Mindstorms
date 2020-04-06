@@ -29,16 +29,24 @@ motor_sensor = MediumMotor(OUTPUT_D)
 
 # Init sensor
 ir_sensor = InfraredSensor()
-
-if SOUND_ON:
-    sound.speak('Ready to go!')
+sensor_orientation = 0
 
 
 def establish_connection():
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    serversocket.bind((socket.gethostname(), config.PORT))
+    try:
+        serversocket.bind((socket.gethostname(), config.PORT))
+    except OSError:
+        msg = "Couldn't open a socket"
+        print(msg)
+        if SOUND_ON:
+            sound.speak(msg)
     print("Hostname: " + socket.gethostname() + ", port:" + str(config.PORT))
     serversocket.listen(1)
+
+    if SOUND_ON:
+        sound.speak('Ready to connect!')
+
     (clientsocket, address) = serversocket.accept()
     return clientsocket, address
 
@@ -79,14 +87,21 @@ def move_forward(distance):
 
 def rotate(angle):
     print("Rotate for " + str(angle))
-    steer_pair.on_for_degrees(steering=100, speed=50,
+    steer_pair.on_for_degrees(steering=-100, speed=50,
                               degrees=ANGLE_FACTOR * angle)
 
 
 def rotate_sensor(angle, block=True, speed=10):
+    angle_scaled = angle * SCAN_POSITION_FACTOR
     motor_sensor.on_for_degrees(speed=speed,
-                                degrees=angle * SCAN_POSITION_FACTOR,
+                                degrees=angle_scaled,
                                 block=block)
+    global sensor_orientation
+    sensor_orientation += angle_scaled
+
+
+def rotate_sensor_to_zero_position():
+    rotate_sensor(-sensor_orientation / SCAN_POSITION_FACTOR)
 
 
 def measure_and_send(angle):
@@ -143,5 +158,8 @@ with clientsocket:
                 rotate_sensor(float(params[0]))
             else:
                 print("Unknown command: " + command)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, RuntimeError):
+        if SOUND_ON:
+            sound.speak("Shut down.")
         print("Shut down")
+        rotate_sensor_to_zero_position()

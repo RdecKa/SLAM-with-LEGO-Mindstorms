@@ -44,7 +44,8 @@ class RrtPlanner(Planner):
                                               max_step_size=2*robot_size,
                                               min_step_size=robot_size,
                                               distance_tollerance=robot_size,
-                                              data_queue=data_queue)
+                                              data_queue=data_queue,
+                                              robot_size=robot_size)
 
     def select_next_action(self, current_pose: geometry.Pose) -> \
             action.ActionWithParams:
