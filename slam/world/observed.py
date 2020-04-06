@@ -166,6 +166,17 @@ class ObservedWorld(world.World):
                     return False
         return True
 
+    def is_path_free(self, start: geometry.Point, end: geometry.Point,
+                     radius: int = 5, threshold: float = 0.0):
+        pose = geometry.Pose(*start, 0)
+        pose.turn_towards(end)
+        while pose.position.distance_to(end) > radius:
+            pose.move_forward(2 * radius)
+            if not self.is_surrrounding_free(pose.position, radius=radius,
+                                             threshold=threshold):
+                return False
+        return True
+
     def perc_unknown_surround(self, location: geometry.Point,
                               radius: int = 5) -> float:
         """

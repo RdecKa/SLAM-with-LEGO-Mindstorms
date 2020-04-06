@@ -82,6 +82,11 @@ class RrtPlanner(Planner):
                 # No candidates remain
                 return None
 
+            if self.observed_world.is_path_free(current_pose.position, goal,
+                                                radius=int(self.robot_size/2),
+                                                threshold=1):
+                return goal
+
             intermediate_goal = self.path_planner.plan_next_step(
                 current_pose.position, goal)
             c += 1
