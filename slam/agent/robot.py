@@ -1,14 +1,17 @@
 import logging
 import queue
 import random
+import socket
 import time
 
 import slam.agent.agent as agent
 import slam.agent.sensor as sensor
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
+import slam.config as config
 import slam.planner.action as action
 import slam.planner.planner as planner
+import slam.ssocket as ssocket
 import slam.world.observed as oworld
 import slam.world.simulated as sworld
 from slam.common.enums import Message, PathId
@@ -61,7 +64,7 @@ class Robot(agent.Agent):
         logging.info(f"Scan {self.view_angle/2} in each direction.")
         self.scanner.scan_flag.set()
         while (observed := self.observation_queue.get()) is not None:
-            observed.change(self.pose.orientation.in_degrees())
+            observed.change(angle=self.pose.orientation.in_degrees())
             location = self.pose.position.plus_polar(observed)
             observed_data = datapoint.Observation(*location)
             self.data_queue.put(observed_data)
@@ -127,10 +130,11 @@ class SimulatedRobot(Robot):
 
 class LegoRobot(Robot):
     def __init__(self, *args, **kwargs):
+        self.init_socket()
         super().__init__(*args, **kwargs)
 
     def init_sensor(self):
-        self.scanner = sensor.LegoIrSensor(self.observation_queue,
+        self.scanner = sensor.LegoIrSensor(self.observation_queue, self.socket,
                                            self.view_angle,
                                            self.scanning_precision)
 
@@ -143,3 +147,18 @@ class LegoRobot(Robot):
                                           move_action=move_action,
                                           turn_move_action=turn_move_action,
                                           robot_size=self.robot_size)
+
+    def init_socket(self):
+        self.socket = ssocket.Socket(config.HOST, config.PORT)
+
+    def move_forward(self, distance: float):
+        super().move_forward(distance)
+        self.socket.send(f"MOVE {distance:.2f}")
+
+    def rotate(self, angle: int):
+        super().rotate(angle)
+        self.socket.send(f"ROTATE {angle:.2f}")
+
+    def die(self):
+        self.socket.close()
+        super().die()

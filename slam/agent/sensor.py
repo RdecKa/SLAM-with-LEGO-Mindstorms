@@ -1,6 +1,7 @@
 import logging
 import queue
 import random
+import socket
 import threading
 import time
 
@@ -86,35 +87,39 @@ class LegoIrSensor(Sensor):
         Odd run (1, 3 ...):  scan 90, 0, -90
         Even run (2, 4 ...): scan -90, 0, 90
     """
-    def __init__(self, data_queue: queue.Queue, view_angle: int = 360,
-                 precision: int = 20):
+    def __init__(self, data_queue: queue.Queue, socket: socket.socket,
+                 view_angle: int = 360, precision: int = 20):
         super().__init__(data_queue, view_angle, precision)
-        self.max_value = 100.0
+        self.socket = socket
 
         # Rotate sensor to starting position
         starting_orientation = view_angle // 2
+        self.socket.send(f"ROTATESENSOR {starting_orientation}")
         self.orientation = geometry.Angle(0)
         self.rotate(starting_orientation)
 
     def scan(self):
         logging.info("Scanning started")
-
         num_steps = self.view_angle // self.precision + 1
+        increasing = self.orientation.in_degrees() < 0
+        self.socket.send(f"SCAN {self.precision} {num_steps} {increasing}")
 
-        angle = self.precision
-        if self.orientation.in_degrees() > 0:
-            angle = -angle
+        while (data := self.socket.receive()) != "END":
+            angle, measurement = data.split(" ")
+            angle = float(angle)
+            if not increasing:
+                angle = -angle
+            measurement = float(measurement)
 
-        for i in range(num_steps):
-            if i > 0:
-                self.rotate(angle)
-
-            m = self.measure()
-            if m >= self.max_value:
-                logging.info(f"Looking at infinity ({m})")
-                continue
-            polar = geometry.Polar(self.orientation.in_degrees(), m)
+            polar_angle = self.orientation.in_degrees() + angle
+            polar = geometry.Polar(polar_angle, measurement)
             self.data_queue.put(polar)
+
+        total_rotation = (num_steps - 1) * self.precision
+        if not increasing:
+            total_rotation = -total_rotation
+        self.rotate(total_rotation)
+
         self.data_queue.put(None)
         logging.info("Scanning finished")
 
@@ -122,8 +127,4 @@ class LegoIrSensor(Sensor):
         self.orientation.change(angle)
         logging.info(f"Turn motor for {angle} - now "
                      f"{self.orientation.in_degrees()}")
-        time.sleep(.5)
-
-    def measure(self):
-        logging.info(f"Measure distance")
-        return 10.0
+        time.sleep(3)  # Wait until physical sensor is actually turned
