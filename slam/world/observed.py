@@ -96,12 +96,12 @@ class ObservedWorld(world.World):
 
         x_min, y_min = np.Inf, np.Inf
         x_max, y_max = np.NINF, np.NINF
-        for entry in self.map.values():
-            x_coords = [o.location.x for o in entry]
+        for key, entry in self.map.items():
+            x_coords = [o.location.x for o in entry] + [key.x]
             x_min = min(x_min, min(x_coords))
             x_max = max(x_max, max(x_coords))
 
-            y_coords = [o.location.y for o in entry]
+            y_coords = [o.location.y for o in entry] + [key.y]
             y_min = min(y_min, min(y_coords))
             y_max = max(y_max, max(y_coords))
         return (geometry.Point(x_min, y_min), geometry.Point(x_max, y_max))
