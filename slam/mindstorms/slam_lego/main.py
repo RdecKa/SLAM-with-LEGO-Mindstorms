@@ -12,7 +12,9 @@ DISTANCE_FACTOR = 36
 ANGLE_FACTOR = 5.65
 SCAN_POSITION_FACTOR = 3
 
-SOUND_ON = False
+MAX_VALID_MEASUREMENT = 99
+
+SOUND_ON = True
 
 recv_buffer = b""
 end_char = b"\0"
@@ -88,9 +90,13 @@ def rotate_sensor(angle, block=True, speed=10):
 
 
 def measure_and_send(angle):
-    m = ir_sensor.proximity * 0.7
-    print("Measured " + str(m) + " at " + str(angle))
-    msg = str(angle) + " " + str(m)
+    m = ir_sensor.proximity
+    if m > MAX_VALID_MEASUREMENT:
+        print("Looking at infinity")
+        return
+    m_cm = m * 0.7
+    print("Measured " + str(m_cm) + " at " + str(angle))
+    msg = str(angle) + " " + str(m_cm)
     send_to_socket(clientsocket, msg)
 
 
@@ -118,21 +124,24 @@ def scan(precision, num_scans, increasing):
 
 
 with clientsocket:
-    while True:
-        c = receive_from_socket(clientsocket)
-        if not c:
-            break
-        command, *params = c.split(" ")
-        if command == "MOVE":
-            move_forward(float(params[0]))
-        elif command == "ROTATE":
-            rotate(float(params[0]))
-        elif command == "SCAN":
-            precision = float(params[0])
-            num_scans = float(params[1])
-            increasing = params[2] == "True"
-            scan(precision, num_scans, increasing)
-        elif command == "ROTATESENSOR":
-            rotate_sensor(float(params[0]))
-        else:
-            print("Unknown command: " + command)
+    try:
+        while True:
+            c = receive_from_socket(clientsocket)
+            if not c:
+                break
+            command, *params = c.split(" ")
+            if command == "MOVE":
+                move_forward(float(params[0]))
+            elif command == "ROTATE":
+                rotate(float(params[0]))
+            elif command == "SCAN":
+                precision = float(params[0])
+                num_scans = float(params[1])
+                increasing = params[2] == "True"
+                scan(precision, num_scans, increasing)
+            elif command == "ROTATESENSOR":
+                rotate_sensor(float(params[0]))
+            else:
+                print("Unknown command: " + command)
+    except KeyboardInterrupt:
+        print("Shut down")
