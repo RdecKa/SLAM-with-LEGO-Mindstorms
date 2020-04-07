@@ -11,9 +11,9 @@ def run():
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
-    robot_size = 20.0
+    robot_size = 10.0
     scanning_precision = 20
-    view_angle = 240
+    view_angle = 330
     world_number = 5
 
     map = smap.Map(robot_size=robot_size)

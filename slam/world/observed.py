@@ -171,7 +171,7 @@ class ObservedWorld(world.World):
         pose = geometry.Pose(*start, 0)
         pose.turn_towards(end)
         while pose.position.distance_to(end) > radius:
-            pose.move_forward(2 * radius)
+            pose.move_forward(1.5 * radius)
             if not self.is_surrrounding_free(pose.position, radius=radius,
                                              threshold=threshold):
                 return False

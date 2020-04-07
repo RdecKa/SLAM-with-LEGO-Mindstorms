@@ -13,7 +13,7 @@ from slam.common.enums import Existence, PathId
 class PathPlanner():
     def __init__(self, observed_world: oworld.ObservedWorld,
                  max_step_size: int = 10, min_step_size: int = 0,
-                 tilt_towards_goal: float = 0.8,
+                 tilt_towards_goal: float = 0.5,
                  distance_tollerance: float = 5.0,
                  data_queue: queue.Queue = None, robot_size: float = 10.0):
         self.observed_world = observed_world
@@ -93,20 +93,29 @@ class PathPlanner():
                 continue
 
             free_radius = int(self.robot_size / 2)
-            if self.observed_world.is_surrrounding_free(candidate, free_radius,
-                                                        threshold=1):
-                # Free spot
-                new_node = sgraph.Node(candidate, parent)
-                graph.add_node(new_node)
-                min_step_size = self.min_step_size
+            if not self.observed_world.is_surrrounding_free(candidate,
+                                                            free_radius,
+                                                            threshold=1):
+                # Candidate is not free
+                continue
 
-                if candidate.distance_to(goal) < self.tollerance:
-                    return new_node
+            if not self.observed_world.is_path_free(parent.location, candidate,
+                                                    radius=free_radius,
+                                                    threshold=1.0):
+                # Path to the candidate is not free
+                continue
 
-                if len(graph) > 200:
-                    # Give up trying to find path to the goal
-                    logging.warning(f"Couldn't find a path to node {goal}")
-                    return None
+            new_node = sgraph.Node(candidate, parent)
+            graph.add_node(new_node)
+            min_step_size = self.min_step_size
+
+            if candidate.distance_to(goal) < self.tollerance:
+                return new_node
+
+            if len(graph) > 200:
+                # Give up trying to find path to the goal
+                logging.warning(f"Couldn't find a path to node {goal}")
+                return None
 
 
 def get_fun_distance_to(goal: geometry.Point):
