@@ -1,12 +1,20 @@
 import logging
 import socket
+import time
 
 
 class Socket():
     def __init__(self, host, port):
         logging.info(f"Establishing a socket to {host}:{port}")
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((host, port))
+
+        connected = False
+        while not connected:
+            try:
+                self.sock.connect((host, port))
+                connected = True
+            except OSError:
+                time.sleep(1)
         self.recv_buffer = b""
         logging.info(f"Socket to {host}:{port} established")
 
