@@ -74,5 +74,8 @@ class PredefinedWorld(SimulatedWorld):
         elif key == 5:
             w, h = 50, 50
             o = [(0, 20, 20, 35), (30, 0, 35, 15)]
+        elif key == 6:
+            w, h = 60, 20
+            o = [(20, 0, 30, 5)]
 
         super().__init__(width=w, height=h, pose=p, obstacles=o)

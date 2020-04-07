@@ -30,12 +30,20 @@ class Map():
                 self.heat[3].remove()
                 del self.heat
 
-            x_diff = max(x_heat) - min(x_heat)
-            y_diff = max(y_heat) - min(y_heat)
+            x_max = max(x_heat)
+            x_min = min(x_heat)
+            y_max = max(y_heat)
+            y_min = min(y_heat)
+            x_diff = x_max - x_min
+            y_diff = y_max - y_min
+            margin = max(x_diff, y_diff) * 0.1
+            range = [[x_min - margin, x_max + margin],
+                     [y_min - margin, y_max + margin]]
+
             bins = max(1, int(np.min([x_diff, y_diff, 60])))
             self.heat = self.ax.hist2d(x_heat, y_heat, weights=w_heat,
-                                       bins=bins, cmap="BrBG", alpha=.3,
-                                       vmin=-10, vmax=10)
+                                       bins=bins, range=range, cmap="BrBG",
+                                       alpha=.3, vmin=-10, vmax=10)
 
         # Scatter plot
         if self.scat:
