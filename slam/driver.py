@@ -22,6 +22,7 @@ def run():
             try:
                 data = data_queue.get(timeout=3)
             except queue.Empty:
+                map.redraw()
                 continue
 
             if isinstance(data, Message):
