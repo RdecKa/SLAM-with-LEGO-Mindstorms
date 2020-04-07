@@ -17,7 +17,7 @@ class Map():
         self.init_graph()
 
     def init_graph(self):
-        self.figure, self.ax = plt.subplots()
+        self.figure, self.ax = plt.subplots(figsize=(7, 7))
         self.scat = None
         self.path = dict()
         self.heat = None
@@ -30,19 +30,24 @@ class Map():
                 self.heat[3].remove()
                 del self.heat
 
-            x_max = max(x_heat)
-            x_min = min(x_heat)
-            y_max = max(y_heat)
-            y_min = min(y_heat)
+            x_max, x_min = max(x_heat), min(x_heat)
+            y_max, y_min = max(y_heat), min(y_heat)
             x_diff = x_max - x_min
             y_diff = y_max - y_min
-            margin = max(x_diff, y_diff) * 0.1
-            range = [[x_min - margin, x_max + margin],
-                     [y_min - margin, y_max + margin]]
+            if x_diff > y_diff:
+                x_margin = x_diff * 0.1
+                total_size = x_diff + 2 * x_margin
+                y_margin = (total_size - y_diff) / 2
+            else:
+                y_margin = y_diff * 0.1
+                total_size = y_diff + 2 * y_margin
+                x_margin = (total_size - x_diff) / 2
+            map_range = [[x_min - x_margin, x_max + x_margin],
+                         [y_min - y_margin, y_max + y_margin]]
 
-            bins = max(1, int(np.min([x_diff, y_diff, 60])))
+            bins = int(min(max(1, x_diff, y_diff), 60))
             self.heat = self.ax.hist2d(x_heat, y_heat, weights=w_heat,
-                                       bins=bins, range=range, cmap="BrBG",
+                                       bins=bins, range=map_range, cmap="BrBG",
                                        alpha=.3, vmin=-10, vmax=10)
 
         # Scatter plot
