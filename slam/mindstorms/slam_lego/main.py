@@ -16,13 +16,17 @@ SCAN_POSITION_FACTOR = 3
 MAX_VALID_MEASUREMENT = 99 * 2 / 3
 
 SOUND_ON = False
+sound = Sound()
 
 recv_buffer = b""
 end_char = b"\0"
 
-sound = Sound()
-if SOUND_ON:
-    sound.speak('Initializing')
+
+def say(msg):
+    if SOUND_ON:
+        sound.speak(msg)
+    print(msg)
+
 
 # Init motors
 steer_pair = MoveSteering(OUTPUT_B, OUTPUT_C, motor_class=LargeMotor)
@@ -38,16 +42,12 @@ def establish_connection():
     try:
         serversocket.bind((socket.gethostname(), config.PORT))
     except OSError:
-        msg = "Could not open a socket"
-        print(msg)
-        if SOUND_ON:
-            sound.speak(msg)
+        say("Could not open a socket")
         exit(1)
     print("Hostname: " + socket.gethostname() + ", port:" + str(config.PORT))
     serversocket.listen(1)
 
-    if SOUND_ON:
-        sound.speak('Ready to connect!')
+    say('Ready to connect!')
 
     (clientsocket, address) = serversocket.accept()
     return clientsocket, address
@@ -161,7 +161,5 @@ with clientsocket:
             else:
                 print("Unknown command: " + command)
     except (KeyboardInterrupt, RuntimeError):
-        if SOUND_ON:
-            sound.speak("Shut down.")
-        print("Shut down")
+        say("Shut down")
         rotate_sensor_to_zero_position()
