@@ -18,7 +18,7 @@ class Map():
         self.init_graph()
 
     def init_graph(self):
-        self.figure, self.ax = plt.subplots(figsize=(5, 5))
+        self.figure, self.ax = plt.subplots(figsize=(6, 6))
         self.scat = None
         self.path = dict()
         self.heat = None

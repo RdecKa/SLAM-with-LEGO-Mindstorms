@@ -106,6 +106,21 @@ class ObservedWorld(world.World):
             y_max = max(y_max, max(y_coords))
         return (geometry.Point(x_min, y_min), geometry.Point(x_max, y_max))
 
+    def get_area_around_point(self, location: geometry.Point, radius: int) -> \
+            np.array:
+        """
+        Returns a square area with the center in location and the square side
+        of 2 * radius.
+        """
+        min_border, max_border = self.get_world_borders()
+        loc_x, loc_y = *location,
+        x_min = int(round(max(min_border.x, loc_x - radius) - min_border.x))
+        x_max = int(round(min(max_border.x, loc_x + radius) - min_border.x))
+        y_min = int(round(max(min_border.y, loc_y - radius) - min_border.y))
+        y_max = int(round(min(max_border.y, loc_y + radius) - min_border.y))
+        area = self.last_prediction_blurred[y_min:y_max+1, x_min:x_max+1]
+        return area
+
     def point_in_bounds(self, point: geometry.Point) -> bool:
         min_border, max_border = self.get_world_borders()
         return min_border.x <= point.x <= max_border.x and \
@@ -157,14 +172,9 @@ class ObservedWorld(world.World):
 
     def is_surrrounding_free(self, location: geometry.Point, radius: int = 5,
                              threshold: float = 0.0):
-        loc_x, loc_y = *location,
-        for yi in range(-radius, radius + 1):
-            for xi in range(-radius, radius + 1):
-                point = geometry.Point(loc_x + xi, loc_y + yi)
-                if self.point_in_bounds(point) and \
-                        self.get_state_on_coordiante(point) > threshold:
-                    return False
-        return True
+        area = self.get_area_around_point(location, radius)
+        area_over_threshold = area > threshold
+        return not np.any(area_over_threshold)
 
     def is_path_free(self, start: geometry.Point, end: geometry.Point,
                      radius: int = 5, threshold: float = 0.0):
@@ -183,18 +193,11 @@ class ObservedWorld(world.World):
         Returns percentage of unknown cells around location. Points that are
         not within the world borders are not included in calculation.
         """
-        loc_x, loc_y = *location,
-        count = 0
-        total = 0
-        for yi in range(-radius, radius + 1):
-            for xi in range(-radius, radius + 1):
-                point = geometry.Point(loc_x + xi, loc_y + yi)
-                in_bounds = self.point_in_bounds(point)
-                if in_bounds:
-                    total += 1
-                    if self.get_state_on_coordiante(point) == 0:
-                        count += 1
-        return count / total
+
+        area = self.get_area_around_point(location, radius)
+        unknown = area == 0
+        unknown_count = np.sum(unknown)
+        return unknown_count / area.size
 
     def get_random_point(self, min_value: float = np.NINF,
                          max_value: float = np.Inf, blurred=True) \
@@ -208,17 +211,15 @@ class ObservedWorld(world.World):
         else:
             grid = self.last_prediction
 
-        candidates = []
-        for y in range(len(grid)):
-            for x in range(len(grid[y])):
-                if min_value <= grid[y][x] <= max_value:
-                    candidates.append((x, y))
+        candidates = np.argwhere(
+            np.logical_and(grid >= min_value, grid <= max_value))
+
         if len(candidates) == 0:
             return None
 
         min_border, _ = self.get_world_borders()
         index = random.randint(0, len(candidates) - 1)
-        x, y = candidates[index]
+        y, x = candidates[index]
         return geometry.Point(min_border.x + x, min_border.y + y)
 
     def print(self):
