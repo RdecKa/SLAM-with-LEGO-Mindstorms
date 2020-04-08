@@ -28,7 +28,7 @@ class RrtPlanner(Planner):
                  data_queue: queue.Queue, turn_action: action.Action,
                  move_action: action.Action, turn_move_action: action.Action,
                  distance_tollerance: float = None,
-                 angle_tollerance: float = 5.0, robot_size: float = 10.0):
+                 angle_tollerance: float = 3.0, robot_size: float = 10.0):
         super().__init__(turn_action, move_action, turn_move_action)
         self.observed_world = observed_world
         self.data_queue = data_queue
@@ -38,12 +38,12 @@ class RrtPlanner(Planner):
         if distance_tollerance is not None:
             self.distance_tollerance = distance_tollerance
         else:
-            self.distance_tollerance = robot_size
+            self.distance_tollerance = robot_size / 2
 
         self.path_planner = spath.PathPlanner(observed_world,
                                               max_step_size=2*robot_size,
-                                              min_step_size=robot_size/2,
-                                              distance_tollerance=robot_size,
+                                              min_step_size=robot_size/3,
+                                              distance_tollerance=self.distance_tollerance,
                                               data_queue=data_queue,
                                               robot_size=robot_size)
 

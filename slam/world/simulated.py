@@ -75,7 +75,7 @@ class PredefinedWorld(SimulatedWorld):
             w, h = 60, 20
             o = [(20, 30, 0, 5)]
         elif key == 7:
-            w, h = 100, 70
+            w, h = 110, 70
             o = [(40, 41, 0, 40), (75, 76, 30, 69)]
             p = geometry.Pose(20, 20, 0)
 

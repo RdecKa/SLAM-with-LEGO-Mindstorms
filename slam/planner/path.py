@@ -66,10 +66,16 @@ class PathPlanner():
         while True:
             r = random.random()
             if r < self.tilt_towards_goal:
-                target = goal
+                approx_target = goal
+
+                # Randomly change the target
+                d = abs(random.gauss(0, self.tollerance))
+                a = random.randint(0, 359)
+                p = geometry.Polar(a, d)
+                target = approx_target.plus_polar(p)
             else:
                 # Select random point
-                target = self.observed_world.get_random_point(max_value=-1)
+                target = self.observed_world.get_random_point()
 
             # Find node that is closest to the target
             parent = min(graph, key=get_fun_distance_to(target))
@@ -80,16 +86,14 @@ class PathPlanner():
                 # Do not plan too small steps
                 min_step_size *= 0.99
                 if min_step_size < self.min_step_size / 4:
-                    logging.warning(f"min_step_size reduced to a quarter")
-                elif min_step_size < self.min_step_size / 2:
-                    logging.warning(f"min_step_size reduced to a half")
+                    logging.warning(f"min_step_size reduced to a quarter "
+                                    f"({min_step_size:.2f})")
                 continue
             step = min(self.max_step_size, distance)
             polar = geometry.Polar(angle, step)
 
             candidate = parent.location.plus_polar(polar)
             if not self.observed_world.point_in_bounds(candidate):
-                logging.warning(f"Path candidate out of bounds {candidate}")
                 continue
 
             free_radius = int(self.robot_size / 2)

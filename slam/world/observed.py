@@ -217,10 +217,12 @@ class ObservedWorld(world.World):
         if len(candidates) == 0:
             return None
 
-        min_border, _ = self.get_world_borders()
+        min_border, max_border = self.get_world_borders()
         index = random.randint(0, len(candidates) - 1)
         y, x = candidates[index]
-        return geometry.Point(min_border.x + x, min_border.y + y)
+        new_x = min(min_border.x + x, max_border.x)
+        new_y = min(min_border.y + y, max_border.y)
+        return geometry.Point(new_x, new_y)
 
     def print(self):
         s = []
