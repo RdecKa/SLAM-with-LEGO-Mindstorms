@@ -7,6 +7,7 @@ from scipy.ndimage import gaussian_filter
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
 import slam.world.world as world
+from slam.common.enums import ObservationType
 
 
 def get_obstacle_filter(size: int = 7, sigma: float = 2.) -> np.ndarray:
@@ -153,7 +154,9 @@ class ObservedWorld(world.World):
             for obs in observations:
                 x = int(round(obs.location.x - min_border.x))
                 y = int(round(obs.location.y - min_border.y))
-                predicted = apply_filter_on_coordinate(predicted, x, y, kernel)
+                if obs.type == ObservationType.OBSTACLE:
+                    predicted = apply_filter_on_coordinate(predicted, x, y,
+                                                           kernel)
                 predicted = apply_function_on_path(predicted, pos_x, pos_y, x,
                                                    y, lambda x: x - 6)
         self.last_prediction = predicted

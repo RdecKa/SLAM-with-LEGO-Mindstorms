@@ -11,17 +11,21 @@ def run():
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
 
-    robot_size = 25.0
-    scanning_precision = 20
-    view_angle = 330
-    world_number = 7
-
+    robot_size = 10.0
     map = smap.Map(robot_size=robot_size)
     data_queue = queue.Queue()
-    agent = robot.SimulatedRobot(data_queue,
-                                 scanning_precision=scanning_precision,
-                                 view_angle=view_angle, robot_size=robot_size,
-                                 world_number=world_number)
+
+    args = [
+        data_queue,
+    ]
+    kwargs = {
+        "robot_size": robot_size,
+        "scanning_precision": 20,
+        "view_angle": 330,
+        "world_number": 5,
+        "limited_view": 20.0,
+    }
+    agent = robot.SimulatedRobot(*args, **kwargs)
     agent.start()
 
     try:

@@ -18,3 +18,8 @@ class Message(enum.Enum):
 class PathId(enum.Enum):
     ROBOT_HISTORY = enum.auto()
     ROBOT_PATH_PLAN = enum.auto()
+
+
+class ObservationType(enum.Enum):
+    OBSTACLE = enum.auto()
+    FREE = enum.auto()

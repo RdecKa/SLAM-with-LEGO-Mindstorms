@@ -7,6 +7,7 @@ import time
 
 import slam.common.geometry as geometry
 import slam.world.simulated as sworld
+from slam.common.enums import ObservationType
 
 
 class Sensor(threading.Thread):
@@ -46,17 +47,18 @@ class DummySensor(Sensor):
                            self.precision):
             new_measurement = prev_measurement + random.random() * 2 - 1
             polar = geometry.Polar(angle, new_measurement)
+            data = SensorMeasurement(polar, ObservationType.OBSTACLE)
 
-            self.data_queue.put(polar)
+            self.data_queue.put(data)
             prev_measurement = new_measurement
             time.sleep(0.5)
         self.data_queue.put(None)
         logging.info("Scanning finished")
 
 
-class FullInformationSensor(Sensor):
+class SimulatedSensor(Sensor):
     """
-    Sensor that has full information about the real world.
+    Sensor that has some information about the real (simulated) world.
     """
     def __init__(self, simulated_world: sworld.SimulatedWorld,
                  data_queue: queue.Queue, view_angle: int = 360,
@@ -69,12 +71,46 @@ class FullInformationSensor(Sensor):
         start_angle = int(- self.view_angle / 2)
         for angle in range(start_angle, start_angle + self.view_angle + 1,
                            self.precision):
-            measurement = self.world.get_distance_to_wall(angle)
-            polar = geometry.Polar(angle, measurement)
-            self.data_queue.put(polar)
+            data = self.measure(angle)
+            self.data_queue.put(data)
             time.sleep(0.2)
         self.data_queue.put(None)
         logging.info("Scanning finished")
+
+    def measure(self, angle):
+        raise NotImplementedError
+
+
+class FullInformationSensor(SimulatedSensor):
+    """
+    Sensor that has full information about the world.
+    """
+    def measure(self, angle):
+        measurement = self.world.get_distance_to_wall(angle)
+        polar = geometry.Polar(angle, measurement)
+        data = SensorMeasurement(polar, ObservationType.OBSTACLE)
+        return data
+
+
+class LimitedInformationSensor(SimulatedSensor):
+    """
+    Sensor that has a limited view.
+    """
+    def __init__(self, *args, max_distance: float = 30.0, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_distance = max_distance
+
+    def measure(self, angle):
+        measurement = self.world.get_distance_to_wall(angle)
+        if measurement > self.max_distance:
+            measurement = self.max_distance
+            otype = ObservationType.FREE
+        else:
+            otype = ObservationType.OBSTACLE
+
+        polar = geometry.Polar(angle, measurement)
+        data = SensorMeasurement(polar, otype)
+        return data
 
 
 class LegoIrSensor(Sensor):
@@ -105,7 +141,7 @@ class LegoIrSensor(Sensor):
         self.socket.send(f"SCAN {self.precision} {num_steps} {increasing}")
 
         while (data := self.socket.receive()) != "END":
-            angle, measurement = data.split(" ")
+            angle, measurement, *rest = data.split(" ")
             angle = float(angle)
             if not increasing:
                 angle = -angle
@@ -113,7 +149,8 @@ class LegoIrSensor(Sensor):
 
             polar_angle = self.orientation.in_degrees() + angle
             polar = geometry.Polar(polar_angle, measurement)
-            self.data_queue.put(polar)
+            data = SensorMeasurement(polar, ObservationType.OBSTACLE)
+            self.data_queue.put(data)
 
         total_rotation = (num_steps - 1) * self.precision
         if not increasing:
@@ -128,3 +165,12 @@ class LegoIrSensor(Sensor):
         logging.info(f"Turn motor for {angle} - now "
                      f"{self.orientation.in_degrees()}")
         time.sleep(3)  # Wait until physical sensor is actually turned
+
+
+class SensorMeasurement():
+    """
+    polar: location of observation wrt. sensor coordinate system
+    """
+    def __init__(self, polar: geometry.Polar, otype: ObservationType):
+        self.polar = polar
+        self.type = otype

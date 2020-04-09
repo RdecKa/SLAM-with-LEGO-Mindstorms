@@ -20,7 +20,7 @@ from slam.common.enums import Message, PathId
 class Robot(agent.Agent):
     def __init__(self, data_queue: queue.Queue, origin: geometry.Pose = None,
                  robot_size: float = 10.0, scanning_precision: int = 20,
-                 view_angle: int = 180):
+                 view_angle: int = 180, **kwargs):
         super().__init__(data_queue)
         self.pose = origin if origin else geometry.Pose(0, 0, 0)
         self.robot_size = robot_size
@@ -63,10 +63,11 @@ class Robot(agent.Agent):
     def scan(self):
         logging.info(f"Scan {self.view_angle/2} in each direction.")
         self.scanner.scan_flag.set()
-        while (observed := self.observation_queue.get()) is not None:
-            observed.change(angle=self.pose.orientation.in_degrees())
-            location = self.pose.position.plus_polar(observed)
-            observed_data = datapoint.Observation(*location)
+        while (measurement := self.observation_queue.get()) is not None:
+            polar = measurement.polar
+            polar.change(angle=self.pose.orientation.in_degrees())
+            location = self.pose.position.plus_polar(polar)
+            observed_data = datapoint.Observation(*location, measurement.type)
             self.data_queue.put(observed_data)
             pose_data = datapoint.Pose(*self.pose)
             self.observed_world.add_observation(pose_data, observed_data)
@@ -101,17 +102,28 @@ class Robot(agent.Agent):
 class SimulatedRobot(Robot):
     def __init__(self, data_queue: queue.Queue, robot_size: float = 10.0,
                  scanning_precision: int = 20, view_angle: int = 180,
-                 world_number: int = 0):
+                 world_number: int = 0, limited_view: float = None):
         self.simulated_world = sworld.PredefinedWorld(world_number)
+        self.limited_view = limited_view
         origin = self.simulated_world.pose
         super().__init__(data_queue, origin, robot_size, scanning_precision,
                          view_angle)
 
     def init_sensor(self):
-        self.scanner = sensor.FullInformationSensor(self.simulated_world,
-                                                    self.observation_queue,
-                                                    self.view_angle,
-                                                    self.scanning_precision)
+        args = [
+            self.simulated_world,
+            self.observation_queue,
+        ]
+        kwargs = {
+            "view_angle": self.view_angle,
+            "precision": self.scanning_precision
+        }
+        if self.limited_view is not None:
+            scanner = sensor.LimitedInformationSensor
+            kwargs["max_distance"] = self.limited_view
+        else:
+            scanner = sensor.FullInformationSensor
+        self.scanner = scanner(*args, **kwargs)
 
     def init_planner(self):
         turn_action = action.Action(self.rotate)

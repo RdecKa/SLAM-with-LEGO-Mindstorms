@@ -4,7 +4,7 @@ from typing import List
 
 import slam.common.enums as enums
 import slam.common.geometry as geometry
-from slam.common.enums import Existence
+from slam.common.enums import Existence, ObservationType
 
 
 class DataPoint():
@@ -34,9 +34,13 @@ class DataPoint():
 
 
 class Observation(DataPoint):
-    def __init__(self, x, y):
-        c = (0.1, 0.2, 0.9, 0.3)
+    def __init__(self, x, y, otype: ObservationType):
+        if otype == ObservationType.OBSTACLE:
+            c = (0.1, 0.2, 0.9, 0.3)
+        elif otype == ObservationType.FREE:
+            c = (0.4, 1.0, 0.1, 0.3)
         super().__init__(x, y, color=c)
+        self.type = otype
 
 
 class Pose(DataPoint):
