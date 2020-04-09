@@ -152,7 +152,8 @@ class LegoRobot(Robot):
     def init_sensor(self):
         self.scanner = sensor.LegoIrSensor(self.observation_queue, self.socket,
                                            self.view_angle,
-                                           self.scanning_precision)
+                                           self.scanning_precision,
+                                           self.robot_size / 2)
 
     def init_planner(self):
         turn_action = action.Action(self.rotate)

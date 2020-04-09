@@ -28,7 +28,7 @@ def run():
                           "saved")
             save = False
 
-    robot_size = 10.0
+    robot_size = 25.0
     map = smap.Map(robot_size=robot_size, filename=filename,
                    save_params=save_params)
     data_queue = queue.Queue()
@@ -43,7 +43,7 @@ def run():
         "world_number": 5,
         "limited_view": 20.0,
     }
-    agent = robot.SimulatedRobot(*args, **kwargs)
+    agent = robot.LegoRobot(*args, **kwargs)
     agent.start()
 
     try:

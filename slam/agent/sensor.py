@@ -126,9 +126,11 @@ class LegoIrSensor(Sensor):
         Even run (2, 4 ...): scan -90, 0, 90
     """
     def __init__(self, data_queue: queue.Queue, socket: socket.socket,
-                 view_angle: int = 360, precision: int = 20):
+                 view_angle: int = 360, precision: int = 20,
+                 safety_distance: float = 10.0):
         super().__init__(data_queue, view_angle, precision)
         self.socket = socket
+        self.safety_distance = safety_distance
 
         # Rotate sensor to starting position
         starting_orientation = view_angle // 2
@@ -148,10 +150,15 @@ class LegoIrSensor(Sensor):
             if not increasing:
                 angle = -angle
             measurement = float(measurement)
+            if len(rest) > 0 and rest[0] == "FREE":
+                otype = ObservationType.FREE
+                measurement -= self.safety_distance
+            else:
+                otype = ObservationType.OBSTACLE
 
             polar_angle = self.orientation.in_degrees() + angle
             polar = geometry.Polar(polar_angle, measurement)
-            data = SensorMeasurement(polar, ObservationType.OBSTACLE)
+            data = SensorMeasurement(polar, otype)
             self.data_queue.put(data)
 
         total_rotation = (num_steps - 1) * self.precision

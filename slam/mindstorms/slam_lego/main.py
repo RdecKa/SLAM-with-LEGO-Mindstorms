@@ -103,17 +103,20 @@ def rotate_sensor(angle, block=True, speed=5):
 
 
 def rotate_sensor_to_zero_position():
-    rotate_sensor(-sensor_orientation / SCAN_POSITION_FACTOR)
+    rotate_sensor(-sensor_orientation / SCAN_POSITION_FACTOR, speed=20)
 
 
 def measure_and_send(angle):
     m = ir_sensor.proximity
-    if m > MAX_VALID_MEASUREMENT:
-        print("Looking at infinity")
-        return
-    m_cm = m * 0.7
-    print("Measured " + str(m_cm) + " at " + str(angle))
-    msg = str(angle) + " " + str(m_cm)
+    if m <= MAX_VALID_MEASUREMENT:
+        m_cm = m * 0.7
+        msg = str(angle) + " " + str(m_cm)
+        print("Measured " + str(m_cm) + " at " + str(angle))
+    else:
+        m_cm = MAX_VALID_MEASUREMENT * 0.7
+        msg = str(angle) + " " + str(m_cm) + " FREE"
+        print("Looking at infinity " + str(angle))
+
     send_to_socket(clientsocket, msg)
 
 
@@ -157,9 +160,15 @@ with clientsocket:
                 increasing = params[2] == "True"
                 scan(precision, num_scans, increasing)
             elif command == "ROTATESENSOR":
-                rotate_sensor(float(params[0]))
+                rotate_sensor(float(params[0]), speed=20)
             else:
                 print("Unknown command: " + command)
     except (KeyboardInterrupt, RuntimeError):
-        say("Shut down")
-        rotate_sensor_to_zero_position()
+        pass
+    except Exception as e:
+        print(e)
+
+say("Shut down")
+rotate_sensor_to_zero_position()
+steer_pair.off()
+motor_sensor.off()
