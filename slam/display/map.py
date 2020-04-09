@@ -1,3 +1,6 @@
+import logging
+from typing import Dict
+
 import matplotlib.collections as collections
 import matplotlib.patches as patches
 import matplotlib.path as mpath
@@ -11,11 +14,15 @@ plt.ion()
 
 
 class Map():
-    def __init__(self, robot_size: float = 10.0, draw_path: bool = True):
+    def __init__(self, robot_size: float = 10.0, draw_path: bool = True,
+                 filename: str = None, save_params: Dict = None):
         self.storage = storage.MapStorage(draw_path)
         self.draw_path = draw_path
         self.robot_size = robot_size
         self.init_graph()
+        self.filename = filename
+        self.save_params = save_params
+        self.file_count = 1
 
     def init_graph(self):
         self.figure, self.ax = plt.subplots(figsize=(6, 6))
@@ -23,7 +30,7 @@ class Map():
         self.path = dict()
         self.heat = None
 
-    def redraw(self):
+    def redraw(self, save=False):
         # Heatmap
         x_heat, y_heat, w_heat = self.storage.get_heatmap_data()
         if x_heat.size > 0:
@@ -59,6 +66,15 @@ class Map():
         # Draw and flush
         self.figure.canvas.draw()
         self.figure.canvas.flush_events()
+
+        if save:
+            if not self.filename:
+                logging.error("Filename missing")
+            else:
+                fmt = self.save_params["format"]
+                name = f"{self.filename}{self.file_count:05d}.{fmt}"
+                self.figure.savefig(name, **self.save_params)
+                self.file_count += 1
 
     def calculate_params_for_heatmap(self, x_data, y_data):
         x_max, x_min = max(x_data), min(x_data)

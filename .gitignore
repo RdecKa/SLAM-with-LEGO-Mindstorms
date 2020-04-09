@@ -94,3 +94,6 @@ ENV/
 
 # Configuration
 config.py
+
+# Saved data
+out

@@ -75,6 +75,10 @@ class Robot(agent.Agent):
     def perform_action(self):
         self.scan()
         action = self.planner.select_next_action(self.pose)
+
+        while not self.data_queue.empty():
+            time.sleep(0.5)
+
         if action is None:
             logging.info("Done")
             return False
@@ -90,7 +94,6 @@ class Robot(agent.Agent):
 
         self.data_queue.put(Message.DELETE_TEMPORARY_DATA)
 
-        time.sleep(1)
         return True
 
     def die(self):
