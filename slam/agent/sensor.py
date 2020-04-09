@@ -96,14 +96,16 @@ class LimitedInformationSensor(SimulatedSensor):
     """
     Sensor that has a limited view.
     """
-    def __init__(self, *args, max_distance: float = 30.0, **kwargs):
+    def __init__(self, *args, max_distance: float = 30.0,
+                 safety_distance: float = 15.0, **kwargs):
         super().__init__(*args, **kwargs)
         self.max_distance = max_distance
+        self.safety_distance = safety_distance
 
     def measure(self, angle):
         measurement = self.world.get_distance_to_wall(angle)
         if measurement > self.max_distance:
-            measurement = self.max_distance
+            measurement = self.max_distance - self.safety_distance
             otype = ObservationType.FREE
         else:
             otype = ObservationType.OBSTACLE

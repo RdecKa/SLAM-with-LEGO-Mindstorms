@@ -121,6 +121,7 @@ class SimulatedRobot(Robot):
         if self.limited_view is not None:
             scanner = sensor.LimitedInformationSensor
             kwargs["max_distance"] = self.limited_view
+            kwargs["safety_distance"] = self.robot_size / 2
         else:
             scanner = sensor.FullInformationSensor
         self.scanner = scanner(*args, **kwargs)
