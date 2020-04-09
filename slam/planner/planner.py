@@ -119,10 +119,12 @@ class RrtPlanner(Planner):
                     continue
                 if grid[yi][xi] < -10:
                     continue  # Enough evidence that here is a free spot
-                if not self.observed_world.is_surrrounding_free(p, radius=1):
+                if not self.observed_world.is_surrrounding_free(
+                        p, radius=int(self.robot_size / 2), threshold=1.0):
                     continue
-                u = self.observed_world.perc_unknown_surround(p, radius=2)
-                if u < 0.01:
+                u = self.observed_world.perc_unknown_surround(
+                    p, radius=int(self.robot_size / 2))
+                if u < 0.3:
                     continue
                 frontier.append(p)
         return datapoint.Frontier(min_border.x, min_border.y, frontier)

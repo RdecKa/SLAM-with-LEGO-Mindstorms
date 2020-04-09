@@ -107,11 +107,11 @@ class ObservedWorld(world.World):
             y_max = max(y_max, max(y_coords))
         return (geometry.Point(x_min, y_min), geometry.Point(x_max, y_max))
 
-    def get_area_around_point(self, location: geometry.Point, radius: int) -> \
-            np.array:
+    def get_area_around_point(self, location: geometry.Point, radius: int,
+                              blurred: bool = True) -> np.array:
         """
         Returns a square area with the center in location and the square side
-        of 2 * radius.
+        of 2 * radius + 1.
         """
         min_border, max_border = self.get_world_borders()
         loc_x, loc_y = *location,
@@ -119,7 +119,12 @@ class ObservedWorld(world.World):
         x_max = int(round(min(max_border.x, loc_x + radius) - min_border.x))
         y_min = int(round(max(min_border.y, loc_y - radius) - min_border.y))
         y_max = int(round(min(max_border.y, loc_y + radius) - min_border.y))
-        area = self.last_prediction_blurred[y_min:y_max+1, x_min:x_max+1]
+
+        if blurred:
+            grid = self.last_prediction_blurred
+        else:
+            grid = self.last_prediction
+        area = grid[y_min:y_max+1, x_min:x_max+1]
         return area
 
     def point_in_bounds(self, point: geometry.Point) -> bool:
@@ -196,11 +201,13 @@ class ObservedWorld(world.World):
         Returns percentage of unknown cells around location. Points that are
         not within the world borders are not included in calculation.
         """
-
-        area = self.get_area_around_point(location, radius)
-        unknown = area == 0
+        total_area_size = ((2 * radius + 1) ** 2)
+        area = self.get_area_around_point(location, radius, blurred=True)
+        unknown = abs(area) < 1
         unknown_count = np.sum(unknown)
-        return unknown_count / area.size
+        unknkown_out_of_map = total_area_size - area.size
+        unknown_count += unknkown_out_of_map
+        return unknown_count / total_area_size
 
     def get_random_point(self, min_value: float = np.NINF,
                          max_value: float = np.Inf, blurred=True) \

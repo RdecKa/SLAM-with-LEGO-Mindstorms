@@ -65,7 +65,7 @@ class Frontier(DataPoint):
     (x, y) are coordinates of the origin of the world
     """
     def __init__(self, x, y, frontier: List[geometry.Point]):
-        c = (0.2, 0.9, 0.1, 0.3)
+        c = (0.1, 0.5, 0.1, 0.3)
         super().__init__(x, y, color=c, existence=Existence.TEMPORARY)
         self.frontier = frontier
 
