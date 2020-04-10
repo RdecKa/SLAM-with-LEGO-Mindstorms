@@ -7,7 +7,7 @@ requirements:
 	${PIP} install -r requirements.txt
 
 init:
-	${PYTHON} -m venv .venv
+	python3.8 -m venv .venv
 	make requirements
 
 run:
