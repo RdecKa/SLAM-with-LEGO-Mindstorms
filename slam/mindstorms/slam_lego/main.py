@@ -13,7 +13,7 @@ ANGLE_FACTOR = 5.65
 SCAN_POSITION_FACTOR = 3
 
 # Actual maximal valid value is 99, but more distant mesurements are more noisy
-MAX_VALID_MEASUREMENT = 99 * 2 / 3
+MAX_VALID_MEASUREMENT = 50
 
 SOUND_ON = False
 sound = Sound()
