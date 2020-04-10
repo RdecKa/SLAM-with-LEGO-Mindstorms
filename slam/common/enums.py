@@ -23,3 +23,8 @@ class PathId(enum.Enum):
 class ObservationType(enum.Enum):
     OBSTACLE = enum.auto()
     FREE = enum.auto()
+
+
+class RobotType(enum.Enum):
+    SIMULATED = enum.auto()
+    LEGO = enum.auto()

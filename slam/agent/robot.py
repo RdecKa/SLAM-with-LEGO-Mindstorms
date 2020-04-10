@@ -8,13 +8,13 @@ import slam.agent.agent as agent
 import slam.agent.sensor as sensor
 import slam.common.datapoint as datapoint
 import slam.common.geometry as geometry
-import slam.config as config
 import slam.planner.action as action
 import slam.planner.planner as planner
 import slam.ssocket as ssocket
 import slam.world.observed as oworld
 import slam.world.simulated as sworld
 from slam.common.enums import Message, PathId
+from slam.config import config
 
 
 class Robot(agent.Agent):

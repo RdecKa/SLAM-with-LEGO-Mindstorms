@@ -5,45 +5,53 @@ import time
 
 import slam.agent.robot as robot
 import slam.display.map as smap
-from slam.common.enums import Message
+from slam.common.enums import Message, RobotType
+from slam.config import config
 
 
 def run():
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
+    rtype = RobotType.SIMULATED
 
-    save = True
-    save_params = dict()
+    config.setup(rtype)
+
+    save = config.SAVE
     filename = None
+
     if save:
-        save_img_path = f"out/{time.strftime('%Y-%m-%d_%H-%M-%S')}"
+        save_folder = f"{config.SAVE_FOLDER}/" \
+                      f"{time.strftime('%Y-%m-%d_%H-%M-%S')}"
         try:
-            os.mkdir(save_img_path)
-            filename = f"{save_img_path}/img_"
-            save_params = {
-                "format": "svgz",
-            }
+            os.mkdir(save_folder)
+            filename = f"{save_folder}/{config.SAVE_FILENAME_PREFIX}"
         except OSError:
             logging.error("Could not create a directory. Images will not be "
                           "saved")
             save = False
 
-    robot_size = 25.0
+    robot_size = config.ROBOT_SIZE
     map = smap.Map(robot_size=robot_size, filename=filename,
-                   save_params=save_params)
+                   save_params=config.SAVE_PARAMS)
     data_queue = queue.Queue()
 
     args = [
         data_queue,
     ]
     kwargs = {
-        "robot_size": robot_size,
-        "scanning_precision": 20,
-        "view_angle": 330,
-        "world_number": 5,
-        "limited_view": 20.0,
+        "robot_size": config.ROBOT_SIZE,
+        "scanning_precision": config.SCANNING_PRECISION,
+        "view_angle": config.VIEW_ANGLE,
     }
-    agent = robot.LegoRobot(*args, **kwargs)
+
+    if rtype == RobotType.SIMULATED:
+        kwargs["world_number"] = config.WORLD_NUMBER
+        kwargs["limited_view"] = config.LIMITED_VIEW
+        agent = robot.SimulatedRobot(*args, **kwargs)
+    elif rtype == RobotType.LEGO:
+        agent = robot.LegoRobot(*args, **kwargs)
+    else:
+        raise TypeError
     agent.start()
 
     try:
