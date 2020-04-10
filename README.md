@@ -1,5 +1,5 @@
 # SLAM with LEGO Mindstorms
-A system that helps a robot exploring the world. By collecting measurements
+A system that helps a robot to explore the world. By collecting measurements
 from the robot's sensors and telling the robot where to go next it constructs a
 map of the world.
 
@@ -9,8 +9,15 @@ fun observing a phisical robot wandering around.
 
 ## Examples
 The GIFs below show two examples - one simulated and one with the LEGO robot.
+For the explanation of symbols, see below.
 
-Explanation of the maps:
+### Simulated robot
+![Example of a simulated robot](docs/img/example_simulated.gif)
+
+### LEGO Mindstorms robot
+TODO
+
+### Explanation of the maps:
 
 - Red dots and the solid black line: Position of the robot through time
 - Gray circle around the red dots: The size of the robot
@@ -21,12 +28,6 @@ Explanation of the maps:
 - Dark green dots: Possible locations to continue exploration
 - Blue cells in the grid: Expected obstacle positions
 - Brown cells in the grid: Expected free positions
-
-### Simulated robot
-![Example of a simulated robot](docs/img/example_simulated.gif)
-
-### LEGO Mindstorms robot
-TODO
 
 ## How do I run it?
 1. If the most recent version of Python that you have installed is below 3.8,
@@ -40,8 +41,19 @@ TODO
 That's it for the simulated robot! Nothing difficult, you should try it
 out<sup>2</sup>!
 
-### But I have a LEGO Mindstorms and I want to see it in action!
-TODO
+### But I have a LEGO EV3 Brick and I want to see it in action!
+1. Check that you have Python 3.8 (or higher) installed on your computer.
+2. Clone this repository.
+3. Set HOST and PORT in `slam/config.py` and `slam/mindstorms/slam_lego/config.py`.
+   HOST should be the IP address of the EV3. Make sure the ports in both files
+   are the same.
+4. Upload the content of `slam/mindstorms/slam_lego` to your EV3 Brick (I'm
+   using ev3dev).
+5. Run `python3 main.py` on the EV3.
+6. On your computer, run the following from the root directory:
+   1. `make init`
+   2. `make runlego`
+7. In the subsequent runs, only `make runlego` is needed.
 
 ## What can be done next?
 - Use a better path planning algorithm

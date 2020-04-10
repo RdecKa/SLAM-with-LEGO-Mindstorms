@@ -9,6 +9,8 @@ requirements:
 init:
 	python3.8 -m venv .venv
 	make requirements
+	cp slam/config.py.sample slam/config.py
+	cp slam/mindstorms/slam_lego/config.py.sample slam/mindstorms/slam_lego/config.py
 
 run:
 	${PYTHON} -m slam
