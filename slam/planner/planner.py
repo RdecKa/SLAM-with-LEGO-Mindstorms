@@ -68,7 +68,7 @@ class RrtPlanner(Planner):
             return None
 
         self.data_queue.put(datapoint.Prediction(*origin, predicted_world))
-        frontier = self.get_unknown_locations(self.observed_world)
+        frontier = self.get_unknown_locations()
         self.data_queue.put(frontier)
 
         intermediate_goal = None
@@ -99,17 +99,17 @@ class RrtPlanner(Planner):
 
         return intermediate_goal
 
-    def get_unknown_locations(self, observed_world: oworld.ObservedWorld) \
+    def get_unknown_locations(self) \
             -> datapoint.Frontier:
         """
         Finds locations where the search can be continued (locations free of
         obstacles that are near to locations with unknown occupancy).
         TODO: Make selection more precize.
         """
-        grid = observed_world.last_prediction_blurred
+        grid = self.observed_world.last_prediction_blurred
         y_shape, x_shape = grid.shape
         frontier = []
-        min_border, _ = observed_world.get_world_borders()
+        min_border, _ = self.observed_world.get_world_borders()
         for yi in range(y_shape):
             for xi in range(x_shape):
                 x = min_border.x + xi
