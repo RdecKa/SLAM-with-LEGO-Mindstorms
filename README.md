@@ -48,7 +48,7 @@ out<sup>2</sup>!
    HOST should be the IP address of the EV3. Make sure the ports in both files
    are the same.
 4. Upload the content of `slam/mindstorms/slam_lego` to your EV3 Brick (I'm
-   using ev3dev).
+   using [ev3dev](https://www.ev3dev.org)).
 5. Run `python3 main.py` on the EV3.
 6. On your computer, run the following from the root directory:
    1. `make init`
