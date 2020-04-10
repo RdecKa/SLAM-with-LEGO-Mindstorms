@@ -23,7 +23,7 @@ Explanation of the maps:
 - Brown cells in the grid: Expected free positions
 
 ### Simulated robot
-TODO
+![Example of a simulated robot](docs/img/example_simulated.gif)
 
 ### LEGO Mindstorms robot
 TODO
