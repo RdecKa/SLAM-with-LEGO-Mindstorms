@@ -1,5 +1,4 @@
 import logging
-import os
 import queue
 import time
 
@@ -9,32 +8,7 @@ from slam.common.enums import Message, RobotType
 from slam.config import config
 
 
-def run():
-    format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
-    rtype = RobotType.SIMULATED
-
-    config.setup(rtype)
-
-    save = config.SAVE
-    filename = None
-
-    if save:
-        save_folder = f"{config.SAVE_FOLDER}/" \
-                      f"{time.strftime('%Y-%m-%d_%H-%M-%S')}"
-        try:
-            os.mkdir(save_folder)
-            filename = f"{save_folder}/{config.SAVE_FILENAME_PREFIX}"
-        except OSError:
-            logging.error("Could not create a directory. Images will not be "
-                          "saved")
-            save = False
-
-    robot_size = config.ROBOT_SIZE
-    map = smap.Map(robot_size=robot_size, filename=filename,
-                   save_params=config.SAVE_PARAMS)
-    data_queue = queue.Queue()
-
+def init_robot(rtype: RobotType, data_queue: queue.Queue) -> robot.Robot:
     args = [
         data_queue,
     ]
@@ -52,6 +26,15 @@ def run():
         agent = robot.LegoRobot(*args, **kwargs)
     else:
         raise TypeError
+
+    return agent
+
+
+def run(rtype: RobotType, save: bool = False, filename: str = None):
+    map = smap.Map(robot_size=config.ROBOT_SIZE, filename=filename,
+                   save_params=config.SAVE_PARAMS)
+    data_queue = queue.Queue()
+    agent = init_robot(rtype, data_queue)
     agent.start()
 
     try:

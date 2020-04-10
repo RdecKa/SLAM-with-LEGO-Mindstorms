@@ -12,6 +12,7 @@ class Agent(threading.Thread):
         threading.Thread.__init__(self)
         self.data_queue = data_queue
         self.shutdown_flag = threading.Event()
+        logging.info(f"Using agent: {type(self).__name__}")
 
     def run(self):
         success = True

@@ -13,6 +13,9 @@ init:
 run:
 	${PYTHON} -m slam
 
+runlego:
+	${PYTHON} -m slam lego
+
 test:
 	# Run tests in folder ./tests
 	${PYTHON} -m unittest discover -s tests
