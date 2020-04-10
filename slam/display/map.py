@@ -25,7 +25,7 @@ class Map():
         self.file_count = 1
 
     def init_graph(self):
-        self.figure, self.ax = plt.subplots(figsize=(6, 6))
+        self.figure, self.ax = plt.subplots(figsize=(5, 5))
         self.scat = None
         self.path = dict()
         self.heat = None
