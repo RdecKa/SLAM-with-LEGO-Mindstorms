@@ -8,16 +8,15 @@ is easier to develop the logic using the simulated robot but it is much more
 fun observing a phisical robot wandering around.
 
 ## Examples
-The GIFs below show two examples - one simulated and one with the LEGO robot.
+The GIFs below show two examples - one with the LEGO robot (left/top) and one simulated (right/bottom).
 For the explanation of symbols, see below.
 
-### Simulated robot
+![Example of the LEGO robot](docs/img/example_lego.gif)
 ![Example of a simulated robot](docs/img/example_simulated.gif)
 
-### LEGO Mindstorms robot
-![LEGO robot in action](docs/img/example_lego_robot.gif)
+Here is how the LEGO robot actually looks like:
 
-![Example of the LEGO robot](docs/img/example_lego.gif)
+![LEGO robot in action](docs/img/example_lego_robot.gif)
 
 ### Explanation of the maps:
 
