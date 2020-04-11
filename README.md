@@ -15,7 +15,9 @@ For the explanation of symbols, see below.
 ![Example of a simulated robot](docs/img/example_simulated.gif)
 
 ### LEGO Mindstorms robot
-TODO
+![LEGO robot in action](docs/img/example_lego_robot.gif)
+
+![Example of the LEGO robot](docs/img/example_lego.gif)
 
 ### Explanation of the maps:
 
