@@ -1,18 +1,19 @@
 # SLAM with LEGO Mindstorms
 A system that helps a robot to explore the world. By collecting measurements
-from the robot's sensors and telling the robot where to go next it constructs a
-map of the world.
+from the robot's sensors and telling the robot where to go next, it constructs
+a map of the world.
 
 The robot can be either a real LEGO Mindstorms robot or a simulated one. It
-is easier to develop the logic using the simulated robot but it is much more
-fun observing a phisical robot wandering around.
+is easier to develop the logic using the simulated robot, but it is much more
+fun observing a physical robot wandering around.
 
 ## Examples
-The GIFs below show two examples - one with the LEGO robot (left/top) and one simulated (right/bottom).
+The GIFs below show two examples - one with the LEGO robot (left/top) and one
+simulated (right/bottom).
 For the explanation of symbols, see below.
 
-![Example of the LEGO robot](docs/img/example_lego.gif)
-![Example of a simulated robot](docs/img/example_simulated.gif)
+![An example of the LEGO robot](docs/img/example_lego.gif)
+![An example of a simulated robot](docs/img/example_simulated.gif)
 
 Here is how the example with the LEGO robot looked like in practice:
 
@@ -25,7 +26,7 @@ Here is how the example with the LEGO robot looked like in practice:
 - Orange dots and the black dashed line: Planned path
 - Blue dots: Detected obstacles
 - Light green dots: Detected free spots (the sensor has a limited view and
-  can't see an obstacle further than that)
+  can't see obstacles further than that)
 - Dark green dots: Possible locations to continue exploration
 - Blue cells in the grid: Expected obstacle positions
 - Brown cells in the grid: Expected free positions
@@ -63,7 +64,7 @@ out<sup>2</sup>!
 - Add touch and gyro sensors to the robot to help with orientation
 
 <sup>1</sup>There is not so much Python 3.8 syntax. It should not be that
-dificult to rewrite the program to Python 3.7 --- if you really want, feel free
+difficult to rewrite the program in Python 3.7 - if you really want, feel free
 to do so.
 
 <sup>2</sup>Developed on (Arch) Linux. Not tested on different platforms.
