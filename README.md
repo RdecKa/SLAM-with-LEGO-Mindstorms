@@ -12,12 +12,12 @@ The GIFs below show two examples - one with the LEGO robot (left/top) and one
 simulated (right/bottom).
 For the explanation of symbols, see below.
 
-![An example of the LEGO robot](docs/img/example_lego.gif)
-![An example of a simulated robot](docs/img/example_simulated.gif)
+![An example of the LEGO robot](docs/img/gif/example_lego.gif)
+![An example of a simulated robot](docs/img/gif/example_simulated.gif)
 
 Here is how the example with the LEGO robot looked like in practice:
 
-![LEGO robot in action](docs/img/example_lego_robot.gif)
+![LEGO robot in action](docs/img/gif/example_lego_robot.gif)
 
 ### Explanation of the maps:
 
@@ -45,17 +45,19 @@ out<sup>2</sup>!
 
 ### But I have a LEGO EV3 Brick and I want to see it in action!
 1. Check that you have Python 3.8 (or higher) installed on your computer.
-2. Clone this repository.
-3. Set HOST and PORT in `slam/config.py` and `slam/mindstorms/slam_lego/config.py`.
+2. Build a robot - [see what I have done](https://github.com/RdecKa/SLAM-with-LEGO-Mindstorms/wiki/The-Robot).
+3. Clone this repository.
+4. Set HOST and PORT in `slam/config.py` and `slam/mindstorms/slam_lego/config.py`.
    HOST should be the IP address of the EV3. Make sure the ports in both files
    are the same.
-4. Upload the content of `slam/mindstorms/slam_lego` to your EV3 Brick (I'm
+5. Connect your EV3 Brick to WiFi. You will need a USB WiFi Dongle.
+6. Upload the content of `slam/mindstorms/slam_lego` to your EV3 (I'm
    using [ev3dev](https://www.ev3dev.org)).
-5. Run `python3 main.py` on the EV3.
-6. On your computer, run the following from the root directory:
+7. Run `python3 main.py` on the EV3.
+8. On your computer, run the following from the root directory:
    1. `make init`
    2. `make runlego`
-7. In the subsequent runs, only `make runlego` is needed.
+9. In the subsequent runs, only `make runlego` is needed.
 
 ## What can be done next?
 - Use a better path planning algorithm
