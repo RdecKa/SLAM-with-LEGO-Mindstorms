@@ -24,7 +24,7 @@ class Sensor(threading.Thread):
     def run(self):
         logging.info(f"Turned sensor {type(self).__name__} on")
         while not self.shutdown_flag.is_set():
-            self.scan_flag.wait(3)
+            self.scan_flag.wait(1)
             if self.scan_flag.is_set():
                 self.scan()
                 self.scan_flag.clear()

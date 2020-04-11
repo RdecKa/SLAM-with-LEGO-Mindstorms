@@ -1,6 +1,7 @@
 import logging
 import queue
 import random
+import threading
 from typing import Tuple
 
 import slam.common.datapoint as datapoint
@@ -12,6 +13,7 @@ from slam.common.enums import Existence, PathId
 
 class PathPlanner():
     def __init__(self, observed_world: oworld.ObservedWorld,
+                 shutdown_flag: threading.Event,
                  max_step_size: int = 10, min_step_size: int = 0,
                  tilt_towards_goal: float = 0.5,
                  distance_tollerance: float = 5.0,
@@ -23,6 +25,7 @@ class PathPlanner():
         self.tollerance = distance_tollerance
         self.data_queue = data_queue
         self.robot_size = robot_size
+        self.shutdown_flag = shutdown_flag
 
     def plan_next_step(self, start: geometry.Point, goal: geometry.Point) \
             -> geometry.Point:
@@ -63,7 +66,7 @@ class PathPlanner():
         goal. Use Node.parent recursively to get the whole path.
         """
         min_step_size = self.min_step_size
-        while True:
+        while not self.shutdown_flag.is_set():
             r = random.random()
             if r < self.tilt_towards_goal:
                 approx_target = goal
@@ -120,6 +123,7 @@ class PathPlanner():
                 # Give up trying to find path to the goal
                 logging.warning(f"Couldn't find a path to node {goal}")
                 return None
+        return None
 
 
 def get_fun_distance_to(goal: geometry.Point):

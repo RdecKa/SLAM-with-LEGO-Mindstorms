@@ -1,6 +1,7 @@
 import logging
 import queue
 import random
+import threading
 
 import numpy as np
 
@@ -27,6 +28,7 @@ class RrtPlanner(Planner):
     def __init__(self, observed_world: oworld.ObservedWorld,
                  data_queue: queue.Queue, turn_action: action.Action,
                  move_action: action.Action, turn_move_action: action.Action,
+                 shutdown_flag: threading.Event,
                  distance_tollerance: float = None,
                  angle_tollerance: float = 3.0, robot_size: float = 10.0):
         super().__init__(turn_action, move_action, turn_move_action)
@@ -34,6 +36,7 @@ class RrtPlanner(Planner):
         self.data_queue = data_queue
         self.angle_tollerance = angle_tollerance
         self.robot_size = robot_size
+        self.shutdown_flag = shutdown_flag
 
         if distance_tollerance is not None:
             self.distance_tollerance = distance_tollerance
@@ -41,6 +44,7 @@ class RrtPlanner(Planner):
             self.distance_tollerance = robot_size / 2
 
         self.path_planner = spath.PathPlanner(observed_world,
+                                              shutdown_flag=shutdown_flag,
                                               max_step_size=2*robot_size,
                                               min_step_size=robot_size/3,
                                               distance_tollerance=self.distance_tollerance,
@@ -74,7 +78,8 @@ class RrtPlanner(Planner):
         intermediate_goal = None
         c = 0
         num_allowed_tries = 5
-        while intermediate_goal is None and c < num_allowed_tries:
+        while intermediate_goal is None and c < num_allowed_tries and \
+                not self.shutdown_flag.is_set():
             select_randomly = c > 0
             goal = self.select_from_frontier(frontier, current_pose,
                                              select_randomly)
@@ -92,9 +97,12 @@ class RrtPlanner(Planner):
             c += 1
 
         if intermediate_goal is None:
-            logging.warning(f"Couldn't find a reachable goal in "
-                            f"{num_allowed_tries} "
-                            f"{'try' if num_allowed_tries == 1 else 'tries'}")
+            if self.shutdown_flag.is_set():
+                logging.info("Planning interrupted.")
+            else:
+                try_text = f"{'try' if num_allowed_tries == 1 else 'tries'}"
+                logging.warning(f"Couldn't find a reachable goal in "
+                                f"{num_allowed_tries} {try_text}")
             return None
 
         return intermediate_goal

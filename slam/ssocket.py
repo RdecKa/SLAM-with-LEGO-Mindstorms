@@ -29,7 +29,10 @@ class Socket():
 
     def receive(self, end_char=b"\0"):
         while end_char not in self.recv_buffer:
-            chunk = self.sock.recv(1024)
+            try:
+                chunk = self.sock.recv(1024)
+            except OSError:
+                raise BrokenPipeError("Socket connection broken")
             if chunk == b"":
                 raise BrokenPipeError("Socket connection broken")
             self.recv_buffer += chunk

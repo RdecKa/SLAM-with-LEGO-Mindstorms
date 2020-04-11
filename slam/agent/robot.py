@@ -63,7 +63,8 @@ class Robot(agent.Agent):
     def scan(self):
         logging.info(f"Scan {self.view_angle/2} in each direction.")
         self.scanner.scan_flag.set()
-        while (measurement := self.observation_queue.get()) is not None:
+        while not self.shutdown_flag.is_set() and \
+                (measurement := self.observation_queue.get()) is not None:
             polar = measurement.polar
             polar.change(angle=self.pose.orientation.in_degrees())
             location = self.pose.position.plus_polar(polar)
@@ -78,6 +79,9 @@ class Robot(agent.Agent):
 
         while not self.data_queue.empty():
             time.sleep(0.5)
+            if self.shutdown_flag.is_set():
+                logging.info("Shutdown flag set")
+                return False
 
         if action is None:
             logging.info("Done")
@@ -163,6 +167,7 @@ class LegoRobot(Robot):
                                           turn_action=turn_action,
                                           move_action=move_action,
                                           turn_move_action=turn_move_action,
+                                          shutdown_flag=self.shutdown_flag,
                                           robot_size=self.robot_size)
 
     def init_socket(self):

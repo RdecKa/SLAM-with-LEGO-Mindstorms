@@ -60,6 +60,6 @@ def run(rtype: RobotType, save: bool = False, filename: str = None):
         logging.info("Waiting for KeyboardInterrupt")
         while True:
             map.redraw()
-            time.sleep(3)
+            time.sleep(1)
     except KeyboardInterrupt:
         pass

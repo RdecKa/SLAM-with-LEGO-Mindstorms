@@ -163,7 +163,7 @@ with clientsocket:
                 rotate_sensor(float(params[0]), speed=20)
             else:
                 print("Unknown command: " + command)
-    except (KeyboardInterrupt, RuntimeError):
+    except (KeyboardInterrupt, RuntimeError, OSError):
         pass
     except Exception as e:
         print(e)
