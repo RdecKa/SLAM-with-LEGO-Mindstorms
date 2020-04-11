@@ -24,14 +24,14 @@ class Socket():
         while total < len(msg):
             sent = self.sock.send(msg[total:])
             if sent == 0:
-                raise RuntimeError("Socket connection broken")
+                raise BrokenPipeError("Socket connection broken")
             total += sent
 
     def receive(self, end_char=b"\0"):
         while end_char not in self.recv_buffer:
             chunk = self.sock.recv(1024)
             if chunk == b"":
-                raise RuntimeError("Socket connection broken")
+                raise BrokenPipeError("Socket connection broken")
             self.recv_buffer += chunk
         end_char_loc = self.recv_buffer.index(end_char)
         msg = self.recv_buffer[:end_char_loc]
@@ -41,3 +41,19 @@ class Socket():
     def close(self):
         self.sock.close()
         logging.info("Socket closed")
+
+
+def handle_socket_error(_func=None, cleanup=None):
+    def decorator_handle_socket_error(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except BrokenPipeError:
+                logging.error("Socket probably closed.")
+                if cleanup is not None:
+                    cleanup()
+        return wrapper
+    if _func is None:
+        return decorator_handle_socket_error
+    else:
+        return decorator_handle_socket_error(_func)

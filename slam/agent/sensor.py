@@ -6,6 +6,7 @@ import threading
 import time
 
 import slam.common.geometry as geometry
+import slam.ssocket as ssocket
 import slam.world.simulated as sworld
 from slam.common.enums import ObservationType
 
@@ -137,29 +138,33 @@ class LegoIrSensor(Sensor):
         self.socket.send(f"ROTATESENSOR {starting_orientation}")
         self.orientation = geometry.Angle(0)
         self.rotate(starting_orientation)
+        time.sleep(2)  # Wait until physical sensor is actually turned
 
     def scan(self):
         logging.info("Scanning started")
         num_steps = self.view_angle // self.precision + 1
         increasing = self.orientation.in_degrees() < 0
-        self.socket.send(f"SCAN {self.precision} {num_steps} {increasing}")
 
-        while (data := self.socket.receive()) != "END":
-            angle, measurement, *rest = data.split(" ")
-            angle = float(angle)
-            if not increasing:
-                angle = -angle
-            measurement = float(measurement)
-            if len(rest) > 0 and rest[0] == "FREE":
-                otype = ObservationType.FREE
-                measurement -= self.safety_distance
-            else:
-                otype = ObservationType.OBSTACLE
+        @ssocket.handle_socket_error
+        def loop():
+            self.socket.send(f"SCAN {self.precision} {num_steps} {increasing}")
+            while (data := self.socket.receive()) != "END":
+                angle, measurement, *rest = data.split(" ")
+                angle = float(angle)
+                if not increasing:
+                    angle = -angle
+                measurement = float(measurement)
+                if len(rest) > 0 and rest[0] == "FREE":
+                    otype = ObservationType.FREE
+                    measurement -= self.safety_distance
+                else:
+                    otype = ObservationType.OBSTACLE
 
-            polar_angle = self.orientation.in_degrees() + angle
-            polar = geometry.Polar(polar_angle, measurement)
-            data = SensorMeasurement(polar, otype)
-            self.data_queue.put(data)
+                polar_angle = self.orientation.in_degrees() + angle
+                polar = geometry.Polar(polar_angle, measurement)
+                data = SensorMeasurement(polar, otype)
+                self.data_queue.put(data)
+        loop()
 
         total_rotation = (num_steps - 1) * self.precision
         if not increasing:
@@ -171,9 +176,6 @@ class LegoIrSensor(Sensor):
 
     def rotate(self, angle):
         self.orientation.change(angle)
-        logging.info(f"Turn motor for {angle} - now "
-                     f"{self.orientation.in_degrees()}")
-        time.sleep(3)  # Wait until physical sensor is actually turned
 
 
 class SensorMeasurement():

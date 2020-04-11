@@ -170,11 +170,19 @@ class LegoRobot(Robot):
 
     def move_forward(self, distance: float):
         super().move_forward(distance)
-        self.socket.send(f"MOVE {distance:.2f}")
+
+        @ssocket.handle_socket_error(cleanup=lambda: self.shutdown_flag.set())
+        def t_move_forward():
+            self.socket.send(f"MOVE {distance:.2f}")
+        t_move_forward()
 
     def rotate(self, angle: int):
         super().rotate(angle)
-        self.socket.send(f"ROTATE {angle:.2f}")
+
+        @ssocket.handle_socket_error(cleanup=lambda: self.shutdown_flag.set())
+        def t_rotate():
+            self.socket.send(f"ROTATE {angle:.2f}")
+        t_rotate()
 
     def die(self):
         self.socket.close()
