@@ -44,6 +44,10 @@ much slower):
 That's it for the simulated robot! Nothing difficult, you should try it
 out<sup>2</sup>!
 
+To change the world the robot is in, try changing `WORLD_NUMBER` and 
+`ROBOT_SIZE` in `slam/config.py`. You can as well define your own world in 
+`slam/world/simulated.py`.
+
 ### But I have a LEGO EV3 Brick and I want to see it in action!
 1. Check that you have Python 3.8 (or higher) installed on your computer.
 2. Build a robot - [see what I have done](https://github.com/RdecKa/SLAM-with-LEGO-Mindstorms/wiki/The-Robot).
