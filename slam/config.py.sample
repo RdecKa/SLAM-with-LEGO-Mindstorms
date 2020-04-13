@@ -18,7 +18,7 @@ class Config(object):
 
     # Simulated robot
     WORLD_NUMBER = 3
-    LIMITED_VIEW = 30.0
+    LIMITED_VIEW = 30.0  # Set to None to allow measurements up to infinity
 
     # LEGO Mindstorms robot (Socket)
     HOST = "127.0.0.1"
