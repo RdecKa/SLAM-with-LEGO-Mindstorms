@@ -15,7 +15,8 @@ For the explanation of symbols, see below.
 ![An example of the LEGO robot](docs/img/gif/example_lego.gif)
 ![An example of a simulated robot](docs/img/gif/example_simulated.gif)
 
-Here is how the example with the LEGO robot looked like in practice:
+Here is how the example with the LEGO robot looked like in practice (just much
+much slower):
 
 ![LEGO robot in action](docs/img/gif/example_lego_robot.gif)
 
