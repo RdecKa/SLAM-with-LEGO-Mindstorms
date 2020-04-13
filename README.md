@@ -20,17 +20,17 @@ much slower):
 
 ![LEGO robot in action](docs/img/gif/example_lego_robot.gif)
 
-### Explanation of the maps:
+### Explanation of the map:
 
-- Red dots and the solid black line: Position of the robot through time
-- Gray circle around the red dots: The size of the robot
-- Orange dots and the black dashed line: Planned path
-- Blue dots: Detected obstacles
-- Light green dots: Detected free spots (the sensor has a limited view and
+- Red dots 🔴 and the solid black line: Position of the robot through time
+- Gray circles 🌑 around the red dots: The size of the robot
+- Orange dots 🟠 and the black dashed line: Planned path
+- Blue dots 🔵: Detected obstacles
+- Light green dots 🟢: Detected free spots (the sensor has a limited view and
   can't see obstacles further than that)
-- Dark green dots: Possible locations to continue exploration
-- Blue cells in the grid: Expected obstacle positions
-- Brown cells in the grid: Expected free positions
+- Dark green dots 🟢: Possible locations to continue exploration
+- Blue cells 🟦 in the grid: Expected obstacle positions
+- Brown cells 🟫 in the grid: Expected free positions
 
 ## How do I run it?
 1. If the most recent version of Python that you have installed is below 3.8,
