@@ -141,6 +141,7 @@ class SimulatedRobot(Robot):
                                           turn_action=turn_action,
                                           move_action=move_action,
                                           turn_move_action=turn_move_action,
+                                          shutdown_flag=self.shutdown_flag,
                                           robot_size=self.robot_size)
 
     def scan(self):
